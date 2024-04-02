@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="runtime">
+<title>crifanLib.cs之Runtime</title>
+
+<sect1 xml:id="getcurverstr"><title>获得当前软件的版本:getCurVerStr</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    public string getCurVerStr()
+    {
+        string curVerStr = "";
+        Assembly asm = Assembly.GetExecutingAssembly();
+        FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(asm.Location);
+        curVerStr = String.Format("{0}.{1}", fvi.ProductMajorPart, fvi.ProductMinorPart);
+        return curVerStr;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.getcurverstr"><title>getCurVerStr 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+            //update version string
+            this.Text += " v" + getCurVerStr();
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+</chapter>

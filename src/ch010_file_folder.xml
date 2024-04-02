@@ -1,0 +1,267 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="file_folder">
+<title>crifanLib.cs之File/Folder</title>
+
+<sect1 xml:id="getsavefolder"><title>获得当前保存路径:getSaveFolder</title>
+    <para>调用对应的FolderBrowserDialog控件，得到用户所选的（保存文件的）路径</para>
+    <programlisting language="csharp">
+<![CDATA[
+    public string getSaveFolder(FolderBrowserDialog fbdSave)
+    {
+        string saveFolderPath = "";
+        //string saveFolderPath = System.Environment.CurrentDirectory;
+        //fbdSaveFolder.SelectedPath = System.Environment.CurrentDirectory;
+        DialogResult saveFolderResult = fbdSave.ShowDialog();
+        if (saveFolderResult == System.Windows.Forms.DialogResult.OK)
+        {
+            saveFolderPath = fbdSave.SelectedPath;
+        }
+        else if (saveFolderResult == System.Windows.Forms.DialogResult.Cancel)
+        {
+            saveFolderPath = "";
+        }
+
+        return saveFolderPath;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.getsavefolder"><title>getSaveFolder 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+//private System.Windows.Forms.FolderBrowserDialog fbdSaveFolder;
+string saveFolderPath = getSaveFolder(fbdSaveFolder);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="savebytestofile"><title>二进制（字节）数据存为文件:saveBytesToFile</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //save binary bytes into file
+    public bool saveBytesToFile(string fileToSave, ref Byte[] bytes, int dataLen, out string errStr)
+    {
+        bool saveOk = false;
+        errStr = "未知错误！";
+
+        try
+        {
+            int bufStartPos = 0;
+            int bytesToWrite = dataLen;
+
+            FileStream fs;
+            fs = File.Create(fileToSave, bytesToWrite);
+            fs.Write(bytes, bufStartPos, bytesToWrite);
+            fs.Close();
+
+            saveOk = true;
+        }
+        catch (Exception ex)
+        {
+            errStr = ex.Message;
+        }
+
+        return saveOk;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.savebytestofile"><title>saveBytesToFile 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+        public bool downloadStMusicFile(string musicRealAddr, string fullnameToStore, out string errStr, Action<int> funcUpdateProgress)
+        {
+            bool downloadOk = false;
+            errStr = "未知错误！";
+
+            if (musicRealAddr == null || 
+                musicRealAddr == "" ||
+                fullnameToStore == null ||
+                fullnameToStore == "")
+            {
+                errStr = "Songtaste歌曲真实的地址无效！";
+                return downloadOk;
+            }
+            
+            Dictionary<string, string> headerDict = new Dictionary<string, string>();
+            //headerDict.Add("Referer", "http://songtaste.com/music/");
+            headerDict.Add("Referer", "http://songtaste.com/");
+
+            //const int maxMusicFileLen = 100 * 1024 * 1024; // 100M
+            const int maxMusicFileLen = 300 * 1024 * 1024; // 300M
+            Byte[] binDataBuf = new Byte[maxMusicFileLen];
+
+            int respDataLen = crl.getUrlRespStreamBytes(ref binDataBuf, musicRealAddr, headerDict, null, 0, funcUpdateProgress);
+            if (respDataLen < 0)
+            {
+                errStr = "无法读取歌曲数据！";
+                return downloadOk;
+            }
+
+            if (crl.saveBytesToFile(fullnameToStore, ref binDataBuf, respDataLen, out errStr))
+            {
+                downloadOk = true;
+            }
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="downloadfile"><title>（从网络上）下载文件（到本地）:downloadFile</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //download file from url
+    //makesure destination folder exist before call this function
+    //input para example:
+    //http://g-ecx.images-amazon.com/images/G/01/kindle/dp/2012/KC/KC-slate-01-lg._V401028090_.jpg
+    //download\B007OZNZG0\KC-slate-01-lg._V401028090_.jpg
+    public bool downloadFile(string fileUrl, string fullnameToStore, out string errStr, Action<int> funcUpdateProgress)
+    {
+        bool downloadOk = false;
+        errStr = "未知错误！";
+
+        if ((fileUrl == null) || (fileUrl == ""))
+        {
+            errStr = "URL地址为空！";
+            return downloadOk;
+        }
+
+        if ((fullnameToStore == null) || (fullnameToStore == ""))
+        {
+            errStr = "文件保存路径为空！";
+            return downloadOk;
+        }
+
+        //const int maxFileLen = 100 * 1024 * 1024; // 100M
+        const int maxFileLen = 300 * 1024 * 1024; // 300M
+        const int lessMaxFileLen = 100 * 1024 * 1024; // 100M
+        Byte[] binDataBuf;
+        try
+        {
+            binDataBuf = new Byte[maxFileLen];
+        }
+        catch (Exception ex)
+        {
+            //if no enough memory, then try alloc less
+            binDataBuf = new Byte[lessMaxFileLen];
+        }
+
+        int respDataLen = getUrlRespStreamBytes(ref binDataBuf, fileUrl, null, null, 0, funcUpdateProgress);
+        if (respDataLen < 0)
+        {
+            errStr = "无法下载文件数据！";
+            return downloadOk;
+        }
+
+        if (saveBytesToFile(fullnameToStore, ref binDataBuf, respDataLen, out errStr))
+        {
+            downloadOk = true;
+        }
+
+        return downloadOk;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.downloadfile"><title>downloadFile 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+        public void updateProgress(int percentage)
+        {
+            //pgbDownload.Value = percentage;
+        }
+
+        public void downloadPictures(string productUrl, string respHtml, out string[] picFullnameList)
+        {
+            //......
+            
+            string[] imageUrlList = amazonLib.extractProductImageList(respHtml);
+            gLogger.Info("Extracted image url list:");
+            if (imageUrlList != null)
+            {
+                picFullnameList = new string[imageUrlList.Length];
+                for (int idx = 0; idx < imageUrlList.Length; idx++)
+                {
+                    string imageUrl = imageUrlList[idx];
+                    gLogger.Info(String.Format("[{0}]={1}", idx, imageUrl));
+
+                    string picFilename = crl.extractFilenameFromUrl(imageUrl);
+
+                    string picFullFilename = Path.Combine(picFolderFullPath, picFilename);
+                    string errorStr = "";
+                    gLogger.Info(String.Format("Downloading {0} to {1}", imageUrl, picFullFilename));
+                    crl.downloadFile(imageUrl, picFullFilename, out errorStr, updateProgress);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="openfolderandselectfile"><title>调用资源管理器打开文件夹并选中文件:openFolderAndSelectFile</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //open folder and select file
+    public void openFolderAndSelectFile(string fullFilename)
+    {
+        System.Diagnostics.Process.Start("Explorer.exe", "/select," + fullFilename);
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.openfolderandselectfile"><title>openFolderAndSelectFile 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+            string outputFilename = txbExpAlertFilename.Text + ".xls";
+            string fullFilename = Path.Combine(saveFolderPath, outputFilename);
+            //......
+            crifanLib.openFolderAndSelectFile(fullFilename);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="openfiledirectly"><title>（调用系统默认程序直接）打开文件:openFileDirectly</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //open file/url/...
+    public void openFileDirectly(string fullFilename)
+    {
+        System.Diagnostics.Process.Start(fullFilename);
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.openfiledirectly"><title>openFileDirectly 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+        private void btnOpenOutputFolder_Click(object sender, EventArgs e)
+        {
+            if (Directory.Exists(txbOutputFolder.Text))
+            {
+                crl.openFileDirectly(txbOutputFolder.Text);
+            }
+        }
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+</chapter>

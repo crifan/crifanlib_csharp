@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<bibliography
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="reference">
+    
+<bibliomixed xml:id="ref.crifanlib">
+  <bibliosource><link xl:href="http://www.crifan.com/crifan_released_all/crifanlib/">crifan的的库函数：crifanLib</link></bibliosource>
+  <author>crifan</author>
+</bibliomixed>
+
+<bibliomixed xml:id="ref.crifanlib_cs">
+  <bibliosource><link xl:href="http://code.google.com/p/crifanlib/source/browse/trunk/csharp/crifanLib.cs">crifan的C#库：crifanLib.cs</link></bibliosource>
+  <author>crifan</author>
+</bibliomixed>
+
+</bibliography>

@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="values">
+<title>crifanLib.cs之Values</title>
+
+<sect1 xml:id="js_math_random_in_csharp"><title>和Javascript中Math.Random()等价的函数:mathRandom</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //equivalent of Math.Random() in Javascript
+    //get a 17 bit double value x, 0 < x < 1, eg:0.68637410117610087
+    public double mathRandom()
+    {
+        Random rdm = new Random();
+        double betweenZeroToOne17Bit = rdm.NextDouble();
+        return betweenZeroToOne17Bit;
+    }
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.mathrandom"><title>mathRandom 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+
+]]>
+        </programlisting>
+    </example>
+</sect1>
+
+
+</chapter>

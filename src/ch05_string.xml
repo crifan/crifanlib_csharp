@@ -1,0 +1,345 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="string">
+<title>crifanLib.cs之String</title>
+
+<para>此处是和字符串（string等）有关的函数</para>
+
+
+<sect1 xml:id="formatstring"><title>格式化字符串中间对齐左右填充:formatstring</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //input: [4] Valid: B0009IQZFM
+    //output: ============================ [4] Valid: B0009IQZFM =============================
+    public string formatString(string strToFormat, char cPaddingChar = '*', int iTotalWidth = 80)
+    {
+        //auto added space
+        strToFormat = " " + strToFormat + " "; //" [4] Valid: B0009IQZFM "
+
+        //1. padding left
+        int iPaddingLen = (iTotalWidth - strToFormat.Length)/2;
+        int iLefTotalLen = iPaddingLen + strToFormat.Length;
+        string strLefPadded = strToFormat.PadLeft(iLefTotalLen, cPaddingChar); //"============================ [4] Valid: B0009IQZFM "
+        //2. padding right
+        string strFormatted = strLefPadded.PadRight(iTotalWidth, cPaddingChar); //"============================ [4] Valid: B0009IQZFM ============================="
+        
+        return strFormatted;
+    }
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.formatstring"><title>formatstring 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+            string strFullCategoryName = String.Format("FullCategoryName={0}", curFullCategoryName);
+            string strFormattedFullCategoryName = crl.formatString(strFullCategoryName, '=');
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="emptystringarray"><title>初始化null的字符串位空字符串"":emptyStringArray</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //init the string array to empty
+    public string[] emptyStringArray(string[] strArr)
+    {
+        if (strArr != null)
+        {
+            for (int idx = 0; idx < strArr.Length; idx++)
+            {
+                strArr[idx] = String.Empty;
+                //strArr[idx] = "";
+            }
+        }
+
+        return strArr;
+    }
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.emptystringarray"><title>emptyStringArray 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+            //5 bullet
+            //public string[] bulletArr; // total 5 (or more, but only record 5)
+            
+            productInfo.bulletArr = new string[5];
+            crl.emptyStringArray(productInfo.bulletArr);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="encodeexclamationmark"><title>将感叹号"!"强制编码为"%21":encodeExclamationMark</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+// encode "!" to "%21"
+public string encodeExclamationMark(string inputStr)
+{
+    return inputStr.Replace("!", "%21");
+}
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.encodeexclamationmark"><title>encodeExclamationMark 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+getItemsUrl += "id=" + encodeExclamationMark(folderId).ToLower();
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="decodeexclamationmark"><title>将"%21"解码为感叹号"!":decodeExclamationMark</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+// encode "%21" to "!"
+public string decodeExclamationMark(string inputStr)
+{
+    return inputStr.Replace("%21", "!");
+}
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.decodeexclamationmark"><title>decodeExclamationMark 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+folderId = decodeExclamationMark(folderId);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="extractsinglestr"><title>从字符串中提取单个的子字符串:extractSingleStr</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+//using Regex to extract single string value
+// caller should make sure the string to extract is Groups[1] == include single () !!!
+public bool extractSingleStr(string pattern, string extractFrom, out string extractedStr)
+{
+    bool extractOK = false;
+    Regex rx = new Regex(pattern);
+    Match found = rx.Match(extractFrom);
+    if (found.Success)
+    {
+        extractOK = true;
+        extractedStr = found.Groups[1].ToString();
+    }
+    else
+    {
+        extractOK = false;
+        extractedStr = "";
+    }
+
+    return extractOK;
+}
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.extractsinglestr"><title>extractSingleStr 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+string resPreloadUrl = "";
+//var srf_uPreload = 'https://skydrive.live.com/handlers/resourcespreload.mvc?view=Folders.All&id;=250206&mkt;=EN-US';
+string resPreloadP = @"var\ssrf_uPreload\s=\s'(.+?)';";
+extractSingleStr(resPreloadP, html, out resPreloadUrl);
+]]>
+        </programlisting>
+    </example>
+    <note xml:id="note.extractsinglestr"><title>传入extractSingleStr的正则pattern中必须包含括号，即group</title>
+        <para>从代码中可见，传入extractSingleStr中的pattern，必须有一个括号，即一个group</para>
+        <para>然后查找出来的内容，才能得以提取出来</para>
+    </note>
+</sect1>
+
+<sect1 xml:id="quoteparas"><title>组合参数列表（变成&amp;xxx=yyy）:quoteParas</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //quote the input dict values
+    //note: the return result for first para no '&'
+    public string quoteParas(Dictionary<string, string> paras, bool spaceToPercent20 = true)
+    {
+        string quotedParas = "";
+        bool isFirst = true;
+        string val = "";
+        foreach (string para in paras.Keys)
+        {
+            if (paras.TryGetValue(para, out val))
+            {
+                string encodedVal = "";
+                if (spaceToPercent20)
+                {
+                    //encodedVal = HttpUtility.UrlPathEncode(val);
+                    //encodedVal = Uri.EscapeDataString(val);
+                    //encodedVal = Uri.EscapeUriString(val);
+                    encodedVal = HttpUtility.UrlEncode(val).Replace("+", "%20");
+                }
+                else
+                {
+                    encodedVal = HttpUtility.UrlEncode(val); //space to +
+                }
+
+                if (isFirst)
+                {
+                    isFirst = false;
+                    quotedParas += para + "=" + encodedVal;
+                }
+                else
+                {
+                    quotedParas += "&" + para + "=" + encodedVal;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return quotedParas;
+    }
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.quoteparas"><title>quoteParas 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+Dictionary<string, string> postDataDict = genPostsrfPostDict(html, login, passwd, isKeepLogin);
+postData += quoteParas(postDataDict);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="removeinvchrinpath"><title>去除文件名或路径中非法字符:removeInvChrInPath</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //remove invalid char in path and filename
+    public string removeInvChrInPath(string origFileOrPathStr)
+    {
+        string validFileOrPathStr = origFileOrPathStr;
+
+        //filter out invalid title and artist char
+        //char[] invalidChars = { '\\', '/', ':', '*', '?', '<', '>', '|', '\b' };
+        char[] invalidChars = Path.GetInvalidPathChars();
+        char[] invalidCharsInName = Path.GetInvalidFileNameChars();
+
+        foreach (char chr in invalidChars)
+        {
+            validFileOrPathStr = validFileOrPathStr.Replace(chr.ToString(), "");
+        }
+
+        foreach (char chr in invalidCharsInName)
+        {
+            validFileOrPathStr = validFileOrPathStr.Replace(chr.ToString(), "");
+        }
+
+        return validFileOrPathStr;
+    }
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.removeinvchrinpath"><title>removeInvChrInPath 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+            string mid_tit;
+            if (crl.extractSingleStr(@"<p\s+?class=""mid_tit"">(?<mid_tit>.+?)<p>", respHtml, out mid_tit))
+            {
+                albumInfo.name = crl.removeInvChrInPath(mid_tit);
+            }
+
+            string h1user;
+            if (crl.extractSingleStr(@"<h1\s+?class=""h1user"">(?<h1user>.+?)</h1>", respHtml, out h1user))
+            {
+                albumInfo.author = crl.removeInvChrInPath(h1user);
+            }
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="filterescapesequence"><title>把\xXX转换为对应的字符:filterEscapeSequence</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //convert \xXX into corresponding char
+    //eg: \x0A -> '\n'
+    public string filterEscapeSequence(string esacapeSequenceStr)
+    {
+        string filteredStr = Regex.Replace(esacapeSequenceStr, @"\\x\w{2}", new MatchEvaluator(_replaceEscapeSequenceToChar));
+
+        return filteredStr;
+    }
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.filterescapesequence"><title>filterEscapeSequence 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="extractfilenamefromurl"><title>从文件的URL地址中提取文件名:extractFilenameFromUrl</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //extract filename from url
+    //eg:
+    //http://g-ecx.images-amazon.com/images/G/01/kindle/dp/2012/KC/KC-slate-01-lg._V401028090_.jpg
+    //KC-slate-01-lg._V401028090_.jpg
+    //file:///C:/Users/CLi/AppData/Local/Temp/WindowsLiveWriter-1737927945/supfilesC19F10/now-the-service-status-is-active_thu%5B1%5D.png
+    //now-the-service-status-is-active_thu%5B1%5D.png
+    public string extractFilenameFromUrl(string fullUrl)
+    {
+        string filename = "";
+        string[] slashList = fullUrl.Split('/');
+        filename = slashList[slashList.Length - 1];
+        return filename;
+    }
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.extractfilenamefromurl"><title>extractFilenameFromUrl 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+    string imageUrl = imageUrlList[idx];
+    gLogger.Info(String.Format("[{0}]={1}", idx, imageUrl));
+
+    string picFilename = crl.extractFilenameFromUrl(imageUrl);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+</chapter>

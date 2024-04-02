@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="time">
+<title>crifanLib.cs之Time</title>
+    <para>此处是和时间（Time，DateTime等）有关的函数</para>
+
+<sect1 xml:id="calc_spend_time"><title>计算（代码执行）时间消耗（的时间段/时长）:elapsedTimeSpanInit,getElapsedTimeSpan</title>
+    <para>使用前，先做最开始的初始化：</para>
+    <programlisting language="csharp">
+<![CDATA[
+private Dictionary<string, DateTime> calcTimeList;
+    
+//init for calc time
+calcTimeList = new Dictionary<string, DateTime>();
+]]>
+    </programlisting>
+    <para>每次使用之前，使用：</para>
+    <programlisting language="csharp">
+    // init for calculate time span
+    public void elapsedTimeSpanInit(string keyName)
+    {
+        calcTimeList.Add(keyName, DateTime.Now);
+    }
+    </programlisting>
+    <para>然后就可以获得对应的时间消耗了：</para>
+    <programlisting language="csharp">
+    // got calculated time span
+    public double getElapsedTimeSpan(string keyName)
+    {
+        double milliSec = 0.0;
+        if (calcTimeList.ContainsKey(keyName))
+        {
+            DateTime startTime = calcTimeList[keyName];
+            DateTime endTime = DateTime.Now;
+            milliSec = (endTime - startTime).TotalMilliseconds;
+        }
+        return milliSec;
+    }
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.elapsedtimespaninit_getelapsedtimespan"><title>elapsedTimeSpanInit,getElapsedTimeSpan 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+
+]]>
+        </programlisting>
+    </example>
+</sect1>
+
+<sect1 xml:id="getcurtimeinmillisec"><title>获得（从epoch时间纪元以来的）（以毫秒为单位的）当前时间:getCurTimeInMillisec</title>
+    <para></para>
+    <programlisting language="csharp">
+    //refer: http://bytes.com/topic/c-sharp/answers/713458-c-function-equivalent-javascript-gettime-function
+    //get current time in milli-second-since-epoch(1970/01/01)
+    public double getCurTimeInMillisec()
+    {
+        DateTime st = new DateTime(1970, 1, 1);
+        TimeSpan t = (DateTime.Now - st);
+        return t.TotalMilliseconds; // milli seconds since epoch
+    }
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.getcurtimeinmillisec"><title>getCurTimeInMillisec 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+double curMilliSecDouble = crl.getCurTimeInMillisec(); //1343392590725.6758
+]]>
+        </programlisting>
+    </example>
+</sect1>
+
+<sect1 xml:id="millisectodatetime"><title>将毫秒转换为（自1970年1月1日以来的）本地时间:milliSecToDateTime</title>
+    <para></para>
+    <programlisting language="csharp">
+// parse the milli second to local DateTime value
+public DateTime milliSecToDateTime(double milliSecSinceEpoch)
+{
+    DateTime st = new DateTime(1970, 1, 1, 0, 0, 0);
+    st = st.AddMilliseconds(milliSecSinceEpoch);
+    return st;
+}
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.millisectodatetime"><title>milliSecToDateTime 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+double doubleVal = 0.0;
+if (Double.TryParse(dateValue, out doubleVal))
+{
+    // try whether is double/int64 milliSecSinceEpoch
+    parsedDatetime = milliSecToDateTime(doubleVal);
+    parseOK = true;
+}
+]]>
+        </programlisting>
+    </example>
+</sect1>
+
+    <sect1 xml:id="parsejsnewdate"><title>将Javascript中的"new Date(xxx)"转换为C#中的DateTime变量:parseJsNewDate</title>
+        <para></para>
+        <programlisting language="csharp">
+<![CDATA[
+//parse xxx in "new Date(xxx)" of javascript to C# DateTime
+//input example:
+//new Date(1329198041411.84) / new Date(1329440307389.9) / new Date(1329440307483)
+public bool parseJsNewDate(string newDateStr, out DateTime parsedDatetime)
+{
+bool parseOK = false;
+parsedDatetime = new DateTime();
+
+if ((newDateStr != "") && (newDateStr.Trim() != ""))
+{
+    string dateValue = "";
+    if (extractSingleStr(@".*new\sDate\((.+?)\).*", newDateStr, out dateValue))
+    {
+        double doubleVal = 0.0;
+        if (Double.TryParse(dateValue, out doubleVal))
+        {
+            // try whether is double/int64 milliSecSinceEpoch
+            parsedDatetime = milliSecToDateTime(doubleVal);
+            parseOK = true;
+        }
+        else if (DateTime.TryParse(dateValue, out parsedDatetime))
+        {
+            // try normal DateTime string
+            //refer: http://www.w3schools.com/js/js_obj_date.asp
+            //October 13, 1975 11:13:00
+            //79,5,24 / 79,5,24,11,33,0
+            //1329198041411.3344 / 1329198041411.84 / 1329198041411
+            parseOK = true;
+        }
+    }
+}
+
+return parseOK;
+}
+]]>
+        </programlisting>
+        <para></para>
+        <example xml:id="eg.parsejsnewdate"><title>parseJsNewDate 的使用范例</title>
+            <programlisting language="csharp">
+DateTime expireTime;
+if (parseJsNewDate(expire, out expireTime))
+{
+    parsedCk.Expires = expireTime;
+}
+            </programlisting>
+        </example>
+        <para></para>
+    </sect1>
+
+</chapter>

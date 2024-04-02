@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="json">
+<title>crifanLib.cs之JSON</title>
+
+<sect1 xml:id="jsontodict"><title>JSON字符串转换为字典变量:jsonToDict</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+#if USE_JSON
+    /*
+     * [Function]
+     * convert json string into dictionary object
+     * [Input]
+     * json string
+     * [Output]
+     * object, internally is dictionary
+     * [Note]
+     * 1.you should know the internal structure of the dictionary
+     * then converted to specific type of yours
+     */
+    public Object jsonToDict(string jsonStr)
+    {
+        JavaScriptSerializer jsonSerializer = new JavaScriptSerializer() { MaxJsonLength = int.MaxValue };
+        Object dictObj = jsonSerializer.DeserializeObject(jsonStr);
+
+        return dictObj;
+    }
+#endif
+]]>
+    </programlisting>
+    <example xml:id="eg.jsontodict"><title>jsonToDict 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+        string kibMasJson = "";
+        string colorImagesJson = "";
+
+        if (crl.extractSingleStr(@"window\.kibMAs\s*=\s*(\[.+?\])\s*;\s*window\.kibConfig\s*=", productHtml, out kibMasJson, RegexOptions.Singleline))
+        {
+            //2. json to dict
+            Object[] dictList = (Object[])crl.jsonToDict(kibMasJson);
+
+            //3. get ["preplayImages"]["L"]
+            imageUrlList = new string[dictList.Length];
+            crl.emptyStringArray(imageUrlList);
+
+            for (int idx = 0; idx < dictList.Length; idx++)
+            {
+                Dictionary<string, Object> eachImgDict = (Dictionary<string, Object>)dictList[idx];
+                Object imgUrlObj = null;
+                if (eachImgDict.ContainsKey("preplayImages"))
+                {
+                    eachImgDict.TryGetValue("preplayImages", out imgUrlObj);
+                }
+                else if (eachImgDict.ContainsKey("imageUrls"))
+                {
+                    eachImgDict.TryGetValue("imageUrls", out imgUrlObj);
+                }
+
+                if (imgUrlObj != null)
+                {
+                    //"L" : "http://g-ecx.images-amazon.com/images/G/01/kindle/dp/2012/KC/KC-slate-01-lg._V401028090_.jpg", 
+                    //"S" : "http://g-ecx.images-amazon.com/images/G/01/kindle/dp/2012/KC/KC-slate-01-sm._V401028090_.jpg"
+
+                    //"L" : "http://g-ecx.images-amazon.com/images/G/01/kindle/dp/2012/KC/KC-slate-03-lg._V400694812_.jpg",
+                    //"S" : "http://g-ecx.images-amazon.com/images/G/01/kindle/dp/2012/KC/KC-slate-03-sm._V400694812_.jpg",
+                    //"rich": {
+                    //    src: "http://g-ecx.images-amazon.com/images/G/01/misc/untranslatable-image-id.jpg",
+                    //    width: null,
+                    //    height: null
+                    //}
+
+                    //Type curType = imgUrlObj.GetType();
+                    Dictionary<string, Object> imgUrlDict = (Dictionary<string, Object>)imgUrlObj;
+                    Object largeImgUrObj = "";
+                    if (imgUrlDict.TryGetValue("L", out largeImgUrObj))
+                    {
+                        //[0]	"http://g-ecx.images-amazon.com/images/G/01/kindle/dp/2012/KT/KT-slate-01-lg._V395919237_.jpg"
+                        //[1]	"http://g-ecx.images-amazon.com/images/G/01/kindle/dp/2012/KT/KT-slate-02-lg._V389394532_.jpg"
+                        //[2]	"http://g-ecx.images-amazon.com/images/G/01/kindle/dp/2012/KT/KT-slate-03-lg._V389394535_.jpg"
+                        //[3]	"http://g-ecx.images-amazon.com/images/G/01//kindle/dp/2012/KT/KT-slate-04-lg.jpg"
+                        //[4]	"http://g-ecx.images-amazon.com/images/G/01/kindle/dp/2012/KT/KT-slate-05-lg._V389394532_.jpg"
+                        imageUrlList[idx] = largeImgUrObj.ToString();
+                    }
+                    else
+                    {
+                        //something wrong
+                        //not get all pic
+                    }
+                }
+                else
+                {
+                    //something wrong
+                }
+            }
+        }
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+</chapter>

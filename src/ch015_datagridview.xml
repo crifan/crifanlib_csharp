@@ -1,0 +1,327 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="datagridview">
+<title>crifanLib.cs之DataGridView</title>
+
+<sect1 xml:id="dgvclearcontent"><title>清楚DataGridView的内容:dgvClearContent</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    public void dgvClearContent(DataGridView dgvValue)
+    {
+        dgvValue.Rows.Clear();
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.dgvclearcontent"><title>dgvClearContent 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+dgvClearContent(dgvSearchedAlerts);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="dgvdrawheadernum"><title>让DataGridView显示行号:dgvDrawHeaderNum</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //draw the row index
+    public void dgvDrawHeaderNum(DataGridView dgvValue)
+    {
+        for (int index = 0; (index <= (dgvValue.Rows.Count - 1)); index++)
+        {
+            int number = index + 1;
+            dgvValue.Rows[index].HeaderCell.Value = String.Format("{0}", number);
+        }
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.dgvdrawheadernum"><title>dgvDrawHeaderNum 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+dgvDrawHeaderNum(dgvSearchedAlerts);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="releaseobject"><title>释放对象（变量）:releaseObject</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //release object
+    public void releaseObject(object obj)
+    {
+        try
+        {
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+            obj = null;
+        }
+        catch (Exception ex)
+        {
+            obj = null;
+            //MessageBox.Show("Exception Occured while releasing object " + ex.ToString());
+        }
+        finally
+        {
+            GC.Collect();
+        }
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.releaseobject"><title>releaseObject 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+        xlWorkBook.Close(true, misValue, misValue);
+        xlApp.Quit();
+
+        releaseObject(xlWorkSheet);
+        releaseObject(xlWorkBook);
+        releaseObject(xlApp);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="dgvexporttoexcel"><title>导出DataGridView内容到Excel文件:dgvExportToExcel</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    public void dgvExportToExcel(  DataGridView dgvValue,
+                                            string excelFullFilename,
+                                            bool isAutoFit = true,
+                                            bool isHeaderBold = true,
+                                            List<int> omitRowIdxList = null,
+                                            List<int> omitColumnIdxList = null,
+                                            List<int> useTagColumnIdxList = null)
+    {
+        Excel.Application xlApp = new Excel.Application();
+        Excel.Workbook xlWorkBook;
+        Excel.Worksheet xlWorkSheet;
+                
+        object misValue = System.Reflection.Missing.Value;
+        xlApp = new Excel.ApplicationClass();
+        xlWorkBook = xlApp.Workbooks.Add(misValue);
+        xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(1);
+
+        int rowIdx = 0, realRowIdx = 0;
+        int columnIdx = 0, realColumnIdx = 0;
+        const int excelRowHeader = 1;
+        const int excelColumnHeader = 1;
+
+        //save header
+        for (columnIdx = 0, realColumnIdx = 0; columnIdx <= dgvValue.ColumnCount - 1; columnIdx++)
+        {
+            
+            if ((omitColumnIdxList != null) && omitColumnIdxList.Contains(columnIdx))
+            {
+                //omit this column
+            }
+            else
+            {
+                //excelRowHeader and excelColumnHeader -> jump over the excel buildin row and column
+                xlWorkSheet.Cells[0 + excelRowHeader, realColumnIdx + excelColumnHeader] = dgvValue.Columns[columnIdx].HeaderText;
+
+                realColumnIdx++;
+            }
+        }
+        
+        const int excelTitleRow = 1;
+        //save cells
+        for (rowIdx = 0, realRowIdx= 0; rowIdx <= dgvValue.RowCount - 1; rowIdx++)
+        {
+            if ((omitRowIdxList != null) && omitRowIdxList.Contains(rowIdx))
+            {
+                //omit this row
+            }
+            else
+            {
+                for (columnIdx = 0, realColumnIdx = 0; columnIdx <= dgvValue.ColumnCount - 1; columnIdx++)
+                {
+                    if ((omitColumnIdxList != null) && omitColumnIdxList.Contains(columnIdx))
+                    {
+                        //omit this column
+                    }
+                    else
+                    {
+                        //note here use [columnIdx, rowIdx], not [rowIdx, columnIdx]
+                        DataGridViewCell curCell = dgvValue[columnIdx, rowIdx];
+                        if ((useTagColumnIdxList != null) && useTagColumnIdxList.Contains(columnIdx))
+                        {
+                            xlWorkSheet.Cells[(realRowIdx + excelTitleRow) + excelRowHeader, realColumnIdx + excelColumnHeader] = curCell.Tag;
+                        }
+                        else
+                        {
+                            xlWorkSheet.Cells[(realRowIdx + excelTitleRow) + excelRowHeader, realColumnIdx + excelColumnHeader] = curCell.Value;
+                        }
+
+                        realColumnIdx++;
+                    }
+                }
+
+                realRowIdx++;
+            }
+        }
+
+        //formatting
+        //(1) header to bold
+        if (isHeaderBold)
+        {
+            Range headerRow = xlWorkSheet.get_Range("1:1", System.Type.Missing);
+            headerRow.Font.Bold = true;
+        }
+        //(2) auto adjust column width (according to content)
+        if (isAutoFit)
+        {
+            Range allColumn = xlWorkSheet.Columns;
+            allColumn.AutoFit();
+        }
+
+        //output
+        xlWorkBook.SaveAs(  excelFullFilename,
+                            XlFileFormat.xlWorkbookNormal,
+                            misValue,
+                            misValue, 
+                            misValue, 
+                            misValue, 
+                            XlSaveAsAccessMode.xlExclusive,
+                            XlSaveConflictResolution.xlLocalSessionChanges,
+                            misValue, 
+                            misValue, 
+                            misValue, 
+                            misValue);
+        xlWorkBook.Close(true, misValue, misValue);
+        xlApp.Quit();
+
+        releaseObject(xlWorkSheet);
+        releaseObject(xlWorkBook);
+        releaseObject(xlApp);
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.dgvexporttoexcel"><title>dgvExportToExcel 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+            string outputFilename = txbExpAlertFilename.Text + ".xls";
+            string fullFilename = Path.Combine(saveFolderPath, outputFilename);
+
+            List<int> omitColumnIdxList = new List<int>();
+            //omit the last column: View page
+            omitColumnIdxList.Add(dgvSearchedAlerts.ColumnCount - 1);
+
+            crifanLib.dgvExportToExcel(dgvSearchedAlerts, fullFilename, omitColumnIdxList: omitColumnIdxList);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="dgvexporttocsv"><title>导出DataGridView内容到CSV文件:dgvExportToCsv</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    public void dgvExportToCsv(DataGridView dgvValue,
+                                        string csvFullFilename,
+                                        string delimiter = ",",
+                                        List<int> omitRowIdxList = null,
+                                        List<int> omitColumnIdxList = null,
+                                        List<int> useTagColumnIdxList = null)
+    {
+        StreamWriter csvStreamWriter = new StreamWriter(csvFullFilename, false, System.Text.Encoding.UTF8);
+
+        int rowIdx = 0, realRowIdx = 0;
+        int columnIdx = 0, realColumnIdx = 0;
+
+        //output header data
+        string headerRowStr = "";
+        for (columnIdx = 0, realColumnIdx = 0; columnIdx <= dgvValue.ColumnCount - 1; columnIdx++)
+        {
+            if ((omitColumnIdxList != null) && omitColumnIdxList.Contains(columnIdx))
+            {
+                //omit this column
+            }
+            else
+            {
+                headerRowStr += dgvValue.Columns[columnIdx].HeaderText + delimiter;
+
+                realColumnIdx++;
+            }
+        }
+        csvStreamWriter.WriteLine(headerRowStr);
+
+        //output rows data
+        for (rowIdx = 0, realRowIdx = 0; rowIdx <= dgvValue.RowCount - 1; rowIdx++)
+        {
+            if ((omitRowIdxList != null) && omitRowIdxList.Contains(rowIdx))
+            {
+                //omit this row
+            }
+            else
+            {
+                string eachRowStr = "";
+                for (columnIdx = 0, realColumnIdx = 0; columnIdx <= dgvValue.ColumnCount - 1; columnIdx++)
+                {
+                    if ((omitColumnIdxList != null) && omitColumnIdxList.Contains(columnIdx))
+                    {
+                        //omit this column
+                    }
+                    else
+                    {
+                        DataGridViewCell curCell = dgvValue[columnIdx, rowIdx];//dgvValue.Rows[rowIdx].Cells[columnIdx]
+                        if ((useTagColumnIdxList != null) && useTagColumnIdxList.Contains(columnIdx))
+                        {
+                            eachRowStr += curCell.Tag + delimiter;
+                        }
+                        else
+                        {
+                            eachRowStr += curCell.Value + delimiter;
+                        }
+                        
+                        realColumnIdx++;
+                    }
+                }
+                csvStreamWriter.WriteLine(eachRowStr);
+
+                realRowIdx++;
+            }
+        }
+
+        csvStreamWriter.Close();        
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.dgvexporttocsv"><title>dgvExportToCsv 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+            string outputFilename = txbExpAlertFilename.Text + ".csv";
+            string fullFilename = Path.Combine(saveFolderPath, outputFilename);
+
+            List<int> omitColumnIdxList = new List<int>();
+            //omit the last column: View page
+            omitColumnIdxList.Add(dgvSearchedAlerts.ColumnCount - 1);
+
+            crifanLib.dgvExportToCsv(dgvSearchedAlerts, fullFilename, omitColumnIdxList: omitColumnIdxList);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+</chapter>

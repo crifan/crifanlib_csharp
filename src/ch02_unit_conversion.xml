@@ -1,0 +1,163 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="unit_conversion">
+<title>crifanLib.cs之Unit Conversion</title>
+
+<sect1 xml:id="ounce_to_kilogram"><title>盎司转千克:ounceToKiloGram</title>
+    <para></para>
+    <programlisting language="csharp">
+    public float ounceToKiloGram(float ounce)
+    {
+        float kiloGram = ounce * 0.028349523125F;
+
+        return kiloGram;
+    }
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.ouncetokilogram"><title>ounceToKiloGram的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+        float kiloGram = -1.0F;
+        string weightNumberStr = "";
+        
+        //type1:
+        //http://www.amazon.com/Kindle-Fire-HD/dp/B0083PWAPW/ref=lp_1055398_1_1?ie=UTF8&qid=1369487181&sr=1-1
+        //<td style="font-weight: bold;text-align:left; font-size: 12px; border-bottom: 1px solid #e2e2e2;" align="right">Weight</td><td style="font-size:12px;">13.9 ounces (395 grams)</td>
+        //http://www.amazon.com/Kindle-Paperwhite-Touch-light/dp/B007OZNZG0/ref=lp_1055398_1_2?ie=UTF8&qid=1369487181&sr=1-2
+        //<td style="font-weight: bold;text-align:left; font-size: 12px; border-bottom: 1px solid #e2e2e2;" align="right">Weight</td><td style="font-size:12px;">7.5 ounces (213 grams)</td>
+        if (!calculatedKiloGram)
+        {
+            if (crl.extractSingleStr(@"Weight</td><td style=""[^<>]+?"">([\.\d]+) ounces", productHtml, out weightNumberStr))
+            {
+                float onces = float.Parse(weightNumberStr);
+                kiloGram = crl.ounceToKiloGram(onces);
+]]>
+        </programlisting>
+    </example>
+</sect1>
+
+
+<sect1 xml:id="kilogram_to_ounce"><title>千克转盎司:kiloGramToOunce</title>
+    <para></para>
+    <programlisting language="csharp">
+    public float kiloGramToOunce(float kiloGram)
+    {
+        float ounce = kiloGram * 35.27396194958F;
+
+        return ounce;
+    }
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.kilogramtoounce"><title>kiloGramToOunce 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+
+]]>
+        </programlisting>
+    </example>
+</sect1>
+
+<sect1 xml:id="pound_to_kilogram"><title>英镑转千克:poundToKiloGram</title>
+    <para></para>
+    <programlisting language="csharp">
+    public float poundToKiloGram(float pound)
+    {
+        float kiloGram = pound * 0.45359237F;
+
+        return kiloGram;
+    }
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.poundToKiloGram"><title>poundToKiloGram 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+                else if (unitType.Equals("pounds"))
+                {
+                    float pound = float.Parse(weightNumberStr);
+                    kiloGram = crl.poundToKiloGram(pound);
+                }
+]]>
+        </programlisting>
+    </example>
+</sect1>
+
+<sect1 xml:id="kilogram_to_pound"><title>千克转英镑:kiloGramToPound</title>
+    <para></para>
+    <programlisting language="csharp">
+    public float kiloGramToPound(float kiloGram)
+    {
+        float pound = kiloGram * 0.45359237F;
+
+        return pound;
+    }
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.kilogramtopound"><title>kiloGramToPound 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+
+]]>
+        </programlisting>
+    </example>
+</sect1>
+
+<sect1 xml:id="inch_to_cm"><title>英尺转厘米:inchToCm</title>
+    <para></para>
+    <programlisting language="csharp">
+    public float inchToCm(float inch)
+    {
+        float cm = inch * 2.54F;
+
+        return cm;
+    }
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.inchToCm"><title>inchToCm 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+            dimensionInch.length = float.Parse(lengthInchStr);
+            dimensionInch.width = float.Parse(widthInchStr);
+            dimensionInch.height = float.Parse(heightInchStr);
+
+            dimensionCm.length = crl.inchToCm(dimensionInch.length);
+            dimensionCm.width = crl.inchToCm(dimensionInch.width);
+            dimensionCm.height = crl.inchToCm(dimensionInch.height);
+]]>
+        </programlisting>
+    </example>
+</sect1>
+
+<sect1 xml:id="cm_to_inch"><title>厘米转英尺:cmToInch</title>
+    <para></para>
+    <programlisting language="csharp">
+    public float cmToInch(float cm)
+    {
+        float inch = cm * 0.39370078740157F;
+
+        return inch;
+    }
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.cmtoinch"><title>kiloGramToPound 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+
+]]>
+        </programlisting>
+    </example>
+</sect1>
+
+</chapter>

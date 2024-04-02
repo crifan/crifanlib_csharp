@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE book
+[
+
+<!ENTITY cur_book_name      "crifanlib_csharp" >
+<!ENTITY publish_date       "2013-08-20" >
+<!ENTITY release_version    "1.0" >
+
+<!ENTITY copyrith_year "2013" >
+<!ENTITY entity_common_multi_format     SYSTEM  "../../entity_common_multi_format.xml">
+<!ENTITY entity_common_publish_info     SYSTEM  "../../entity_common_publish_info.xml">
+]>
+
+<book version="5.0"
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:lang="zh_CN">
+
+<info>
+    <title>详解crifan的C#库：crifanLib.cs</title>
+    <subtitle></subtitle>
+    <keywordset>
+        <keyword>C#</keyword>
+        <keyword>crifanLib</keyword>
+        <keyword>crifanLib.cs</keyword>
+        <keyword>crifan</keyword>
+    </keywordset>
+
+    <abstract>
+        <para>本文主要介绍了我，crifan，的C#库：crifanLib.cs的功能和用法。</para>
+        &entity_common_multi_format;
+    </abstract>
+
+    <revhistory>
+        <revision>
+            <revnumber>&release_version;</revnumber>
+            <date>&publish_date;</date>
+            <revremark>
+                <orderedlist>
+                    <listitem>从C#学习心得提取出来成立独立的book</listitem>
+                    <listitem>更新了N多函数的代码和用法</listitem>
+                </orderedlist>
+            </revremark>
+            <authorinitials>crl</authorinitials>
+        </revision>
+    </revhistory>
+
+    &entity_common_publish_info;
+</info>
+
+<xi:include href="preface.xml" />
+<xi:include href="ch01_treeview_treenode.xml" />
+<xi:include href="ch02_unit_conversion.xml" />
+<xi:include href="ch03_values.xml" />
+<xi:include href="ch04_time.xml" />
+<xi:include href="ch05_string.xml" />
+<xi:include href="ch06_array.xml" />
+<xi:include href="ch07_cookie.xml" />
+<xi:include href="ch08_serialize_deserialize.xml" />
+<xi:include href="ch09_http.xml" />
+<xi:include href="ch010_file_folder.xml" />
+<xi:include href="ch011_screen.xml" />
+<xi:include href="ch012_runtime.xml" />
+<xi:include href="ch013_html_parse.xml" />
+<xi:include href="ch014_emb_dll_to_exe.xml" />
+<xi:include href="ch015_datagridview.xml" />
+<xi:include href="ch016_json.xml" />
+<xi:include href="reference.xml" />
+
+</book>

@@ -1,0 +1,1588 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="http">
+<title>crifanLib.cs之Http</title>
+
+<para>此处是和网络（Http等）有关的函数</para>
+
+<sect1 xml:id="setproxy"><title>设置代理:setProxy</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    /* set proxy
+     * Note:
+     * 1. current only support http proxy
+     * 2. current only support single proxy
+     */
+    public void setProxy(string proxyIp, int proxyPort)
+    {
+        gProxy = new WebProxy(proxyIp, proxyPort);
+    }
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.setproxy"><title>setProxy 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+public crifanLib crl;
+crl = new crifanLib();
+crl.setProxy("127.0.0.1", 8087);
+]]>
+        </programlisting>
+    </example>
+    <para>然后后续的（去用getUrlRespHtml等等）去访问网络，就会自动使用该代理了。</para>
+</sect1>
+
+<sect1 xml:id="clearcurcookies"><title>清除当前cookie:clearCurCookies</title>
+    <programlisting language="csharp">
+<![CDATA[
+    /*
+     * Note: currently support auto handle cookies
+     * currently only support single caller -> multiple caller of these functions will cause cookies accumulated
+     * you can clear previous cookies to avoid unexpected result by call clearCurCookies
+     */
+    public void clearCurCookies()
+    {
+        if (curCookies != null)
+        {
+            curCookies = null;
+            curCookies = new CookieCollection();
+        }
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.clearcurcookies"><title>clearCurCookies 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+    //http://www.crifan.com/example_of_how_to_use_ie9_f12_to_capture_the_real_music_mp3_address_of_some_songtaste_musc/
+    // here must clear previous cookies
+    // otherwise access html with previous cookies will get fault html:
+    //信息提示: 　 对不起，该用户不存在！ 3 秒钟以后系统将自动跳转！
+    crl.clearCurCookies();
+ 
+    string respHtml = "";
+    respHtml = crl.getUrlRespHtml(songInfo.url, stHtmlCharset);
+]]>
+        </programlisting>
+        <para>另外<link xl:href="http://code.google.com/p/insertskydrivefiles/">InsertSkydriveFiles</link>中的一个例子：</para>
+        <programlisting language="csharp">
+<![CDATA[
+        private void clearGolobalValues()
+        {
+            //gCurDomain = "";
+            skydriveCookies = null;
+            commLib.clearCurCookies();
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+  
+<sect1 xml:id="getcurcookies"><title>获得当前cookie:getCurCookies</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    /* get current cookies */
+    public CookieCollection getCurCookies()
+    {
+        return curCookies;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.getcurcookies"><title>getCurCookies 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+string primeRespHtml = getSkydriveRespHtmlLogin(ref resp);
+skydriveCookies = getCurCookies();
+]]>
+        </programlisting>
+        <para>另外<link xl:href="http://www.crifan.com/csharp_another_set_cookie_parse_bug_add_wrong_path/">【已解决】又发现一个C#中解析Set-Cookie的一个bug：无故地添加cookie的path域</link>中的一个例子：</para>
+        <programlisting language="csharp">
+<![CDATA[
+    crl = new crifanLib();
+    
+    HttpWebResponse addNk1Response = crl.getUrlResponse(addNk1Url, headerDict: headerDict, postDict: postDict);//<script>location.href='/add/'</script>
+    String curDomain = crl.extractHost(addPhpUrl);//new.guguyu.com
+    CookieCollection parsedCookies = crl.parseSetCookie(addNk1Response.Headers["Set-Cookie"], curDomain);
+    CookieCollection curCookies = crl.getCurCookies();
+    crl.updateLocalCookies(parsedCookies, ref curCookies);
+    crl.setCurCookies(curCookies);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="setcurcookies"><title>设置当前cookie:setCurCookies</title>
+    <para>主要用于，重置当前的cookie，设置为所需的状态。</para>
+    <programlisting language="csharp">
+<![CDATA[
+    /* set current cookies */
+    public void setCurCookies(CookieCollection cookies)
+    {
+        curCookies = cookies;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.setcurcookies"><title>setCurCookies 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+skydriveCookies = new CookieCollection();
+skydriveCookies = loginInfo.cookies;
+setCurCookies(skydriveCookies);
+]]>
+        </programlisting>
+        <para>另外<link xl:href="http://www.crifan.com/csharp_another_set_cookie_parse_bug_add_wrong_path/">【已解决】又发现一个C#中解析Set-Cookie的一个bug：无故地添加cookie的path域</link>中的一个例子：</para>
+        <programlisting language="csharp">
+<![CDATA[
+    crl = new crifanLib();
+    
+    HttpWebResponse addNk1Response = crl.getUrlResponse(addNk1Url, headerDict: headerDict, postDict: postDict);//<script>location.href='/add/'</script>
+    String curDomain = crl.extractHost(addPhpUrl);//new.guguyu.com
+    CookieCollection parsedCookies = crl.parseSetCookie(addNk1Response.Headers["Set-Cookie"], curDomain);
+    CookieCollection curCookies = crl.getCurCookies();
+    crl.updateLocalCookies(parsedCookies, ref curCookies);
+    crl.setCurCookies(curCookies);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="geturlresponse"><title>获得Url地址的响应:getUrlResponse</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    /* get url's response
+    * */
+    public HttpWebResponse getUrlResponse(string url,
+                                        Dictionary<string, string> headerDict = defHeaderDict,
+                                        Dictionary<string, string> postDict = defPostDict,
+                                        int timeout = defTimeout,
+                                        string postDataStr = defPostDataStr,
+                                        int readWriteTimeout = defReadWriteTimeout)
+    {
+#if USE_GETURLRESPONSE_BW
+        //BackgroundWorker Version getUrlResponse
+        HttpWebResponse localCurResp = null;
+        getUrlResponse_bw(url, headerDict, postDict, timeout, postDataStr, readWriteTimeout);
+        while (bNotCompleted_resp)
+        {
+            System.Windows.Forms.Application.DoEvents();
+        }
+        localCurResp = gCurResp;
+
+        //clear
+        gCurResp = null;
+
+        return localCurResp;
+#else
+        //non-BackgroundWorker Version getUrlResponse
+        return _getUrlResponse(url, headerDict, postDict, timeout, postDataStr);;
+#endif
+    }
+]]>
+    </programlisting>
+    <para>从上面的代码中可以看出，此处的getUrlResponse内部的实现，是依赖于是否设置宏USE_GETURLRESPONSE_BW，而去调用对应的BackgroundWorker版本的，还是非BackgroundWorker版本的_getUrlResponse</para>
+    <para>此处，getUrlResponse，是用来返回HttpWebResponse的，且支持N多参数。</para>
+    <sect2 xml:id="geturlresponse_para"><title>getUrlResponse的参数详解</title>
+        <para>下面就对于getUrlResponse的各个参数，进行详细解释一下：</para>
+        <sect3 xml:id="geturlresponse_para_url"><title>getUrlResponse的参数:url</title>
+            <para>要访问的url地址</para>
+            <para>必填参数，无默认值。</para>
+            <para>支持http，也支持https类型的地址。</para>
+        </sect3>
+
+        <sect3 xml:id="geturlresponse_para_headerdict"><title>getUrlResponse的参数:headerDict</title>
+            <para>headerDict的意思是，header的dict，即用于存放对应的header信息</para>
+            <para>默认的headerDict的值为defHeaderDict</para>
+            <para>defHeaderDict值是null：</para>
+            <programlisting language="csharp">
+<![CDATA[
+    private const Dictionary<string, string> defHeaderDict = null;
+]]>
+            </programlisting>
+            <para>作用是，当不指定对应的header信息时，默认为空</para>
+            <para>常见用法中，一般也不需要指定此headerDict</para>
+            <para>当然，有时候，需要用到一些header，比如其中最最常见的referer等等。</para>
+        </sect3>
+
+        <sect3 xml:id="geturlresponse_para_postdict"><title>getUrlResponse的参数:postDict</title>
+            <para>postDict即POST的dict，用于存放post数据。</para>
+            <para>默认的postDict的值为defPostDict</para>
+            <para>defPostDict值是null：</para>
+            <programlisting language="csharp">
+<![CDATA[
+    private const Dictionary<string, string> defPostDict = null;
+]]>
+            </programlisting>
+            <para>一般的GET时，无需指定此参数。</para>
+            <para>只有当是POST时，才可能会用到此postDict。</para>
+        </sect3>
+
+        <sect3 xml:id="geturlresponse_para_timeout"><title>getUrlResponse的参数:timeout</title>
+            <para>timeout用于指定网络超时的最大允许时间，单位是毫秒ms。</para>
+            <para>默认的timeout的值为defTimeout</para>
+            <para>defTimeout值是30000毫秒==30秒：</para>
+            <programlisting language="csharp">
+<![CDATA[
+    private const int defTimeout = 30 * 1000;
+]]>
+            </programlisting>
+            <para>注意，此timeout，是针对于http网络发送请求后，得到服务器的响应之前，这段时间，是否超时，即和GetResponse和GetRequestStream有关。</para>
+            <para>一般来说，也不需要设置此timeout，即无需改变对应的默认超时时间。</para>
+            <para>当然，如果有需要，可以根据你自己的情况修改为更合适的值。</para>
+        </sect3>
+
+        <sect3 xml:id="geturlresponse_para_postdatastr"><title>getUrlResponse的参数:postDataStr</title>
+            <para>postDataStr是用来传递，特殊的POST的数据是以回车为分隔符的那些POST数据的。</para>
+            <para>postDataStr的默认值为defPostDataStr</para>
+            <para>defPostDataStr值也是null：</para>
+            <programlisting language="csharp">
+<![CDATA[
+    private const string defPostDataStr = null;
+]]>
+            </programlisting>
+            <para>需要注意的是，如果是GET，很明显无需关系此参数，而如果是POST，正常情况下，也只需要去设置对应的postDict参数即可，对应的内部处理POST数据，都是以'&amp;'为分隔符的。</para>
+            <para>但是，有些特殊的POST，POST的数据是以回车为分隔符的，比如之前折腾<link xl:href="http://www.crifan.com/blogstowordpress_add_feeling_card_for_163_netease_blog/">【记录】给BlogsToWordPress添加支持导出网易的心情随笔</link>时遇到这种特殊情况，此时，才需要你用到此去设置postDataStr</para>
+        </sect3>
+
+        <sect3 xml:id="geturlresponse_para_readwritetimeout"><title>getUrlResponse的参数:readWriteTimeout</title>
+            <para>readWriteTimeout指的是，针对于获得了response后，用SteamReader去read或write时，对应的超时时间。单位是毫秒ms。</para>
+            <para>readWriteTimeout的默认值是defReadWriteTimeout</para>
+            <para>defReadWriteTimeout值是30000毫秒==30秒：</para>
+            <programlisting language="csharp">
+<![CDATA[
+    private const int defReadWriteTimeout = 30 * 1000;
+]]>
+            </programlisting>
+            <para>注意，参考微软官网的解释：<link xl:href="http://msdn.microsoft.com/zh-cn/library/system.net.httpwebrequest.readwritetimeout.aspx">HttpWebRequest.ReadWriteTimeout 属性 </link>其默认的ReadWriteTimeout是300秒=5分钟，太长了。</para>
+            <para>所以，此处才把默认时间改短一些的，否则，5分钟的超时时间，太长了。</para>
+            <para>此参数，是经过多次折腾后，才搞明白的，详见：<link xl:href="http://www.crifan.com/csharp_httpwebresponse_streamreader_readline_dead_again/">【已解决】C#中在GetResponseStream得到的Stream后,通过StreamReader去ReadLine或ReadToEnd会无限期挂掉 + 给StreamReader添加Timeout支持</link></para>
+        </sect3>
+    </sect2>
+
+    <sect2 xml:id="geturlresponse_examples"><title>getUrlResponse 的用法详解</title>
+        <para>getUrlResponse参数太多，但是其实也是自己一点点，从无到有，加进去的，以适应各种应用需求。</para>
+        <para>此处，就来通过例子来说明，如何使用此getUrlResponse函数。</para>
+        
+        <sect3 xml:id="geturlresponse_example_get_html"><title>被getUrlRespHtml调用</title>
+            <para>其实，此处的getUrlResponse，在绝大多数的时候，都是被，我的另外一个函数：getUrlRespHtml，所调用的。</para>
+            <para>即，getUrlRespHtml，调用，getUrlResponse，获得对应的HttpWebResponse，然后后续再处理，得到返回的html的。</para>
+            <para>所以，用起来，一般都是这样的：</para>
+            <example xml:id="eg.geturlresponse.call_by_geturlresphtml"><title>getUrlResponse 的使用范例：被getUrlRespHtml调用</title>
+                <programlisting language="csharp">
+<![CDATA[
+    // valid charset:"GB18030"/"UTF-8", invliad:"UTF8"
+    public string getUrlRespHtml(string url,
+                                    Dictionary<string, string> headerDict = defHeaderDict,
+                                    string charset = defCharset,
+                                    Dictionary<string, string> postDict = defPostDict,
+                                    int timeout = defTimeout,
+                                    string postDataStr = defPostDataStr,
+                                    int readWriteTimeout = defReadWriteTimeout)
+    {
+        string respHtml = "";
+
+        HttpWebResponse resp = getUrlResponse(url, headerDict, postDict, timeout, postDataStr, readWriteTimeout);
+]]>
+                </programlisting>
+            </example>
+            <para>关于此种用法，更详细的代码和解释，参见下面要介绍的：<xref linkend="geturlresphtml" /></para>
+            <para></para>
+        </sect3>
+        
+        <sect3 xml:id="geturlresponse_example_only_url"><title>只传入url而获得对应的url的response</title>
+            <para>getUrlResponse的相对次要的用法是：当有时候，不仅仅需要html，而且也要关心和处理HttpWebResponse时，此时，才会考虑直接调用getUrlResponse（而不是去调用getUrlRespHtml）</para>
+            <para>而直接使用getUrlResponse的话，相对简单的用法就是，只传入对应的url即可：</para>
+            <example xml:id="eg.geturlresponse.only_url"><title>getUrlResponse 的使用范例：只传入url</title>
+                <programlisting language="csharp">
+<![CDATA[
+    const string constSkydriveUrl = "https://skydrive.live.com/";
+    HttpWebResponse resp = getUrlResponse(constSkydriveUrl);
+]]>
+                </programlisting>
+            </example>
+            <para></para>
+        </sect3>
+    </sect2>
+</sect1>
+
+<sect1 xml:id="geturlresphtml"><title>获得Url地址返回的网页内容:getUrlRespHtml</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    // valid charset:"GB18030"/"UTF-8", invliad:"UTF8"
+    public string getUrlRespHtml(string url,
+                                    Dictionary<string, string> headerDict = defHeaderDict,
+                                    string charset = defCharset,
+                                    Dictionary<string, string> postDict = defPostDict,
+                                    int timeout = defTimeout,
+                                    string postDataStr = defPostDataStr,
+                                    int readWriteTimeout = defReadWriteTimeout)
+    {
+        string respHtml = "";
+
+        HttpWebResponse resp = getUrlResponse(url, headerDict, postDict, timeout, postDataStr, readWriteTimeout);
+
+        //long realRespLen = resp.ContentLength;
+        if (resp != null)
+        {
+            StreamReader sr;
+            Stream respStream = resp.GetResponseStream();
+            if (!string.IsNullOrEmpty(charset))
+            {
+                Encoding htmlEncoding = Encoding.GetEncoding(charset);
+                sr = new StreamReader(respStream, htmlEncoding);
+            }
+            else
+            {
+                sr = new StreamReader(respStream);
+            }
+
+            try
+            {
+                respHtml = sr.ReadToEnd();
+
+                //while (!sr.EndOfStream)
+                //{
+                //    respHtml = respHtml + sr.ReadLine();
+                //}
+
+                //string curLine = "";
+                //while ((curLine = sr.ReadLine()) != null)
+                //{
+                //    respHtml = respHtml + curLine;
+                //}
+
+                ////http://msdn.microsoft.com/zh-cn/library/system.io.streamreader.peek.aspx
+                //while (sr.Peek() > -1) //while not error or not reach end of stream
+                //{
+                //    respHtml = respHtml + sr.ReadLine();
+                //}
+
+                //respStream.Close();
+                //sr.Close();
+                //resp.Close();
+            }
+            catch (Exception ex)
+            {
+                //【未解决】C#中StreamReader中遇到异常：未处理ObjectDisposedException,无法访问已关闭的流
+                //http://www.crifan.com/csharp_streamreader_unhandled_exception_objectdisposedexception_cannot_access_closed_stream
+                //System.ObjectDisposedException
+                respHtml = "";
+            }
+            finally
+            {
+                if (respStream != null)
+                {
+                    respStream.Close();
+                }
+                if (sr != null)
+                {
+                    sr.Close();
+                }
+                if (resp != null)
+                {
+                    resp.Close();
+                }
+            }
+        }
+
+        return respHtml;
+    }
+]]>
+    </programlisting>
+    <para></para>
+
+    <sect2 xml:id="geturlresphtml_para"><title>getUrlRespHtml的参数详解</title>
+        <para>很明显可以看出，此处的getUrlRespHtml的很多参数，和前面介绍的<xref linkend="geturlresponse" />非常类似。</para>
+        <para>此处，针对于getUrlRespHtml的参数，也要再解释一下：</para>
+        <para>其他参数，包括url,headerDict,postDict,timeout,postDataStr,readWriteTimeout，都和getUrlResponse的参数含义相同。所以不再赘述。</para>
+        <para>另外还有参数，需要解释一下：</para>
+        <itemizedlist>
+            <listitem>charset
+                <para>charset表示返回的网页内容，用何种字符编码去解码。</para>
+                <para>charset默认值是defCharset</para>
+                <para>defCharset的值是：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    private const string defCharset = null;
+]]>
+                </programlisting>
+                <para>此处，之所以defCharset的值，不是我们所常见的GBK，UTF-8等等，是因为此处是为了支持，当不设置charset时，就不去尝试用某种编码去解码通过StreamReader所读取出来的内容。</para>
+                <para>这样的就可以获得，原始的，返回的html，可以供有需要的人，后期进行自己的处理，比如自己去解码等等。</para>
+            </listitem>
+        </itemizedlist>
+    </sect2>
+
+    <sect2 xml:id="geturlresphtml_functions"><title>getUrlRespHtml 的功能详解</title>
+        <para>getUrlRespHtml内部，已经实现了足够多的，相对比较复杂的功能，对此，需要详细解释一下：</para>
+        <sect3 xml:id="geturlresphtml_functions_useragent"><title>内部已默认指定了IE8的User-Agent</title>
+            <para>getUrlRespHtml内部调用getUrlResponse，内部已经加上了对应的User-Agent了。</para>
+            <para>当然默认使用的是IE8的User-Agent，相关部分的代码是：</para>
+            <programlisting language="csharp">
+<![CDATA[
+    //IE7
+    const string constUserAgent_IE7_x64 = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; InfoPath.3; .NET4.0C; .NET4.0E)";
+    //IE8
+    const string constUserAgent_IE8_x64 = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; WOW64; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; InfoPath.3; .NET4.0C; .NET4.0E";
+    //IE9
+    const string constUserAgent_IE9_x64 = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)"; // x64
+    const string constUserAgent_IE9_x86 = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)"; // x86
+    //Chrome
+    const string constUserAgent_Chrome = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4";
+    //Mozilla Firefox
+    const string constUserAgent_Firefox = "Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:1.9.2.6) Gecko/20100625 Firefox/3.6.6";
+    private string gUserAgent;
+    
+    gUserAgent = constUserAgent_IE8_x64;
+
+    req.UserAgent = gUserAgent;
+]]>
+            </programlisting>
+            <para>所以，不会出现，被服务器当做普通的机器人或蜘蛛爬虫的情况。</para>
+        </sect3>
+
+        <sect3 xml:id="geturlresphtml_functions_autoredirect"><title>默认是允许自动跳转的</title>
+            <para>内部相关代码：</para>
+            <programlisting language="csharp">
+<![CDATA[
+                    req.AllowAutoRedirect = true;
+]]>
+            </programlisting>
+            <para>默认是启用了自动跳转的。</para>
+            <para>如果想要禁止自动跳转，可以去给headerDict中加上对应的"AllowAutoRedirect"为"false"的参数</para>
+            <para>更多使用实例，详见后续的例子。</para>
+        </sect3>
+
+        <sect3 xml:id="geturlresphtml_functions_compressed"><title>默认已支持解压缩html</title>
+            <para>内部相关代码：</para>
+            <programlisting language="csharp">
+<![CDATA[
+        req.Headers["Accept-Encoding"] = "gzip, deflate";
+        //req.AutomaticDecompression = DecompressionMethods.GZip;
+        req.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+]]>
+            </programlisting>
+            <para>相关帖子：<link xl:href="http://www.crifan.com/csharp_httpwebrequest_proxy_abnormal_not_working/">【已解决】C#中HttpWebRequest使用Proxy后异常</link></para>
+        </sect3>
+
+        <sect3 xml:id="geturlresphtml_functions_proxy"><title>已支持设置（单个）代理</title>
+            <para>内部相关代码：</para>
+            <programlisting language="csharp">
+<![CDATA[
+    private WebProxy gProxy = null;
+
+    req.Proxy = gProxy;
+]]>
+            </programlisting>
+            <para>关于如何设置代理，详见：<xref linkend="setproxy" /></para>
+        </sect3>
+
+        <sect3 xml:id="geturlresphtml_functions_timeout"><title>支持网络超时设置</title>
+            <para>即前面所解释的参数：<xref linkend="geturlresponse_para_timeout" />，指的是网络方面的超时，和GetResponse和GetRequestStream有关</para>
+            <para>内部相关部分的代码是：</para>
+            <programlisting language="csharp">
+<![CDATA[
+        if (timeout > 0)
+        {
+            req.Timeout = timeout;
+        }
+]]>
+            </programlisting>
+            <para></para>
+        </sect3>
+
+        <sect3 xml:id="geturlresphtml_functions_readwritetimeout"><title>支持读写超时设置</title>
+            <para>即前面所解释的参数：<xref linkend="geturlresponse_para_readwritetimeout" />，指的是StreamReader或StreamWriter的读写超时，和readLine之类的有关。</para>
+            <para>内部相关部分的代码是：</para>
+            <programlisting language="csharp">
+<![CDATA[
+        if (readWriteTimeout > 0)
+        {
+            //default ReadWriteTimeout is 300000=300 seconds = 5 minutes !!!
+            //too long, so here change to 300000 = 30 seconds
+            //for support TimeOut for later StreamReader's ReadToEnd
+            req.ReadWriteTimeout = readWriteTimeout;
+        }
+]]>
+            </programlisting>
+            <para>相关折腾见：<link xl:href="http://www.crifan.com/csharp_httpwebresponse_streamreader_readline_dead_again/">【已解决】C#中在GetResponseStream得到的Stream后,通过StreamReader去ReadLine或ReadToEnd会无限期挂掉 + 给StreamReader添加Timeout支持</link></para>
+        </sect3>
+
+        <sect3 xml:id="geturlresphtml_functions_cookie"><title>支持自动处理cookie</title>
+            <para>此处已经支持，getUrlRespHtml内部，自动处理cookie。</para>
+            <para>内部相关部分的代码是：</para>
+            <programlisting language="csharp">
+<![CDATA[
+    CookieCollection curCookies = null;
+    
+    curCookies = new CookieCollection();
+
+    if (curCookies != null)
+    {
+        req.CookieContainer = new CookieContainer();
+        req.CookieContainer.PerDomainCapacity = 40; // following will exceed max default 20 cookie per domain
+        req.CookieContainer.Add(curCookies);
+    }
+    
+    resp = (HttpWebResponse)req.GetResponse();
+    updateLocalCookies(resp.Cookies, ref curCookies);
+]]>
+            </programlisting>
+            <para>其中，注意到，设置了最大支持40个cookie，是因为，之前折腾<link xl:href="http://code.google.com/p/insertskydrivefiles/">InsertSkydriveFiles</link>期间，遇到相对极端的情况：cookie超过默认的20多个，一个CookieContainer都装不下了，所以才改为40个，以便支持如此多的cookie。</para>
+        </sect3>
+    </sect2>
+        
+    <sect2 xml:id="geturlresphtml_examples"><title>getUrlRespHtml 的用法详解</title>
+        <para>getUrlRespHtml的参数够多，用法，也有很多种。</para>
+        <para>此处，就来通过例子来说明，如何使用此getUrlResponse函数。</para>
+
+        <sect3 xml:id="geturlresphtml_example_only_url"><title>getUrlRespHtml用法示例：只传入url而获得html</title>
+            <para>getUrlRespHtml最常用，也是最简单的用法，就是：直接传入url，然后获得返回的html</para>
+            <para>代码如下：</para>
+            <example xml:id="eg.geturlresponse_only_url"><title>getUrlRespHtml用法示例：只传入url而获得html</title>
+                <programlisting language="csharp">
+<![CDATA[
+string mainJsUrl = "http://image.songtaste.com/inc/main.js";
+string respHtmlMainJs = getUrlRespHtml(mainJsUrl);
+]]>
+                </programlisting>
+            </example>
+            <para>其中，getUrlRespHtml内部，会自动帮你处理各种细节，比如cookie，header中的User-Agent等等内容，而你就直接可以得到对应返回的html了。</para>
+        </sect3>
+        
+        <sect3 xml:id="geturlresphtml_example_header"><title>getUrlRespHtml用法示例：传入各种header信息</title>
+            <para>很多时候，在折腾抓取网页和模拟登陆时，都会遇到，需要额外再指定一些header，用于实现一些特定的目的。</para>
+
+            <sect4 xml:id="geturlresphtml_example_header_referer"><title>getUrlRespHtml用法示例：指定Referer</title>
+                <para>比如，添加对应的Referer，以便成功模拟网页逻辑，获得所需返回的内容的：</para>
+                <programlisting language="csharp">
+<![CDATA[
+            string tmpRespHtml = "";
+            Dictionary<string, string> headerDict;
+            //(1)to get cookies
+            string pageRankMainUrl = "http://pagerank.webmasterhome.cn/";
+            tmpRespHtml = getUrlRespHtml(pageRankMainUrl);
+            //(2)ask page rank
+            string firstBaseUrl = "http://pagerank.webmasterhome.cn/?domain=";
+            //http://pagerank.webmasterhome.cn/?domain=answers.yahoo.com
+            string firstWholeUrl = firstBaseUrl + noHttpPreDomainUrl;
+            headerDict = new Dictionary<string, string>();
+            headerDict.Add("referer", pageRankMainUrl);
+            tmpRespHtml = getUrlRespHtml(firstWholeUrl, headerDict: headerDict);
+]]>
+                </programlisting>
+                <note xml:id="note.header_referer"><title>header中的Referer支持大小写任意</title>
+                    <para>由具体的实现代码：</para>
+                    <programlisting language="csharp">
+<![CDATA[
+                    string lowecaseHeader = header.ToLower();
+                    // following are allow the caller overwrite the default header setting
+                    if (lowecaseHeader == "referer")
+                    {
+                        req.Referer = headerValue;
+                    }
+]]>
+                    </programlisting>
+                    <para>可以看出，此处的"referer"，写成常见的首字母大写"Referer"也是可以的。</para>
+                </note>
+            </sect4>
+
+            <sect4 xml:id="geturlresphtml_example_header_autoredirect"><title>getUrlRespHtml用法示例：禁止自动跳转</title>
+                <para>如<xref linkend="geturlresphtml_functions_autoredirect" />所述，默认是启用了自动跳转的，想要禁止自动跳转，可以通过header去设置：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    Dictionary<string, string> headerDict = new Dictionary<string, string>();
+    headerDict.Add("AllowAutoRedirect", "false");
+    string respHtml = getUrlRespHtml(yourUrl, headerDict: headerDict);
+]]>
+                </programlisting>
+                <note xml:id="note.header_autoredirect"><title>header中的AutoRedirect支持多种写法</title>
+                    <para>由具体的实现代码：</para>
+                    <programlisting language="csharp">
+<![CDATA[
+                    else if (
+                            (lowecaseHeader == "allow-autoredirect") ||
+                            (lowecaseHeader == "allowautoredirect") ||
+                            (lowecaseHeader == "allow autoredirect")
+                            )
+                    {
+                        bool isAllow = false;
+                        if (bool.TryParse(headerValue, out isAllow))
+                        {
+                            req.AllowAutoRedirect = isAllow;
+                        }
+                    }
+]]>
+                    </programlisting>
+                    <para>可以看出，此处的"AllowAutoRedirect"，写成别的形式，也是支持的，比如："allowautoredirect"，"allow-autoredirect", "Allow-Autoredirect"，"allow autoredirect"，"Allow Autoredirect"</para>
+                </note>
+            </sect4>
+
+            <sect4 xml:id="geturlresphtml_example_header_accept"><title>getUrlRespHtml用法示例：手动设置Accept</title>
+                <para>此处默认的Accept是"*/*"，如果想要指定不同的类型，可以手动通过header去设置：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    Dictionary<string, string> headerDict = new Dictionary<string, string>();
+    headerDict.Add("Accept", "text/html");
+    string respHtml = getUrlRespHtml(yourUrl, headerDict: headerDict);
+]]>
+                </programlisting>
+                <para>关于Accept更多可能的取值，自己参考官网的解释：<link xl:href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1">14.1 Accept</link></para>
+                <note xml:id="note.header_accept"><title>header中的Accept支持大小写任意</title>
+                    <para>由具体的实现代码：</para>
+                    <programlisting language="csharp">
+<![CDATA[
+                    else if (lowecaseHeader == "accept")
+                    {
+                        req.Accept = headerValue;
+                    }
+]]>
+                    </programlisting>
+                    <para>可以看出，此处的"Accept"，写成别的形式，也是支持的，比如："accept"</para>
+                </note>
+            </sect4>
+
+            <sect4 xml:id="geturlresphtml_example_header_keepalive"><title>getUrlRespHtml用法示例：不保持连接</title>
+                <para>此处默认的KeepAlive是true的，如果不想继续保持连接，则可以通过header去禁止：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    Dictionary<string, string> headerDict = new Dictionary<string, string>();
+    headerDict.Add("Keep-Alive", "false");
+    string respHtml = getUrlRespHtml(yourUrl, headerDict: headerDict);
+]]>
+                </programlisting>
+                <note xml:id="note.header_keepalive"><title>header中的KeepAlive支持多种写法</title>
+                    <para>由具体的实现代码：</para>
+                    <programlisting language="csharp">
+<![CDATA[
+                    else if (
+                            (lowecaseHeader == "keep-alive") ||
+                            (lowecaseHeader == "keepalive") ||
+                            (lowecaseHeader == "keep alive")
+                            )
+                    {
+                        bool isKeepAlive = false;
+                        if (bool.TryParse(headerValue, out isKeepAlive))
+                        {
+                            req.KeepAlive = isKeepAlive;
+                        }
+                    }
+]]>
+                    </programlisting>
+                    <para>可以看出，此处的"Keep-Alive"，写成别的形式，也是支持的，比如："keep-alive"，"keepalive"，"KeepAlive"，"keep alive"，"Keep Alive"</para>
+                </note>
+            </sect4>
+
+            <sect4 xml:id="geturlresphtml_example_header_acceptlanguage"><title>getUrlRespHtml用法示例：设置Accept-Language</title>
+                <para>此处默认没有指定Accept-Language，有需要的话，可以去通过header设置：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    Dictionary<string, string> headerDict = new Dictionary<string, string>();
+    headerDict.Add("Accept-Language", "en-US"); //"zh-CN"
+    string respHtml = getUrlRespHtml(yourUrl, headerDict: headerDict);
+]]>
+                </programlisting>
+                <para>关于Accept-Language更多可能的取值，自己参考官网的解释：<link xl:href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4">14.4 Accept-Language</link></para>
+                <note xml:id="note.header_acceptlanguage"><title>header中的Accept-Language支持多种写法</title>
+                    <para>由具体的实现代码：</para>
+                    <programlisting language="csharp">
+<![CDATA[
+                    else if (
+                            (lowecaseHeader == "accept-language") ||
+                            (lowecaseHeader == "acceptlanguage") ||
+                            (lowecaseHeader == "accept language")
+                            )
+
+                    {
+                        req.Headers["Accept-Language"] = headerValue;
+                    }
+]]>
+                    </programlisting>
+                    <para>可以看出，此处的"Accept-Language"，写成别的形式，也是支持的，比如："accept-language"，"acceptlanguage"，"AcceptLanguage"，"accept language"，"Accept Language"</para>
+                </note>
+            </sect4>
+
+            <sect4 xml:id="geturlresphtml_example_header_useragent"><title>getUrlRespHtml用法示例：添加特定的User-Agent的header</title>
+                <para>如<xref linkend="geturlresphtml_functions_useragent" />所述，我此处的getUrlRespHtml，默认添加的User-Agent是IE8的。</para>
+                <para>如果有需要，你可以自己换成别的，比如Firefox的User-Agent：</para>
+                <programlisting language="csharp">
+<![CDATA[
+//Mozilla Firefox
+const string constUserAgent_Firefox = "Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:1.9.2.6) Gecko/20100625 Firefox/3.6.6";
+Dictionary<string, string> headerDict = new Dictionary<string, string>();
+headerDict.Add("User-Agent", constUserAgent_Firefox);
+string respHtml = getUrlRespHtml(yourUrl, headerDict: headerDict);
+]]>
+                </programlisting>
+                <para>其中，关于各种浏览器的User-Agent，你可以自己去网络上找到。也可以参考我代码中的值：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    //IE7
+    const string constUserAgent_IE7_x64 = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; InfoPath.3; .NET4.0C; .NET4.0E)";
+    //IE8
+    const string constUserAgent_IE8_x64 = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; WOW64; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; InfoPath.3; .NET4.0C; .NET4.0E";
+    //IE9
+    const string constUserAgent_IE9_x64 = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)"; // x64
+    const string constUserAgent_IE9_x86 = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)"; // x86
+    //Chrome
+    const string constUserAgent_Chrome = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4";
+    //Mozilla Firefox
+    const string constUserAgent_Firefox = "Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:1.9.2.6) Gecko/20100625 Firefox/3.6.6";
+]]>
+                </programlisting>
+                <note xml:id="note.header_useragent"><title>header中的User-Agent支持多种写法</title>
+                    <para>由具体的实现代码：</para>
+                    <programlisting language="csharp">
+<![CDATA[
+                    else if (
+                            (lowecaseHeader == "user-agent") ||
+                            (lowecaseHeader == "useragent") ||
+                            (lowecaseHeader == "user agent")
+                            )
+                    {
+                        req.UserAgent = headerValue;
+                    }
+]]>
+                    </programlisting>
+                    <para>可以看出，此处的"User-Agent"，写成别的形式，也是支持的，比如："user-agent"，"user agent", "User Agent"，"UserAgent"，"useragent"</para>
+                </note>
+            </sect4>
+
+            <sect4 xml:id="geturlresphtml_example_header_contenttype"><title>getUrlRespHtml用法示例：设置ContentType</title>
+                <para>此处默认情况下，对于GET，没有指定ContentType，对于POST，已经指定了"application/x-www-form-urlencoded"。</para>
+                <para>如果你有别的特殊需求，需要设置ContentType的话，可以去通过header设置：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    Dictionary<string, string> headerDict = new Dictionary<string, string>();
+    headerDict.Add("Content-Type", "text/plain");
+    string respHtml = getUrlRespHtml(yourUrl, headerDict: headerDict);
+]]>
+                </programlisting>
+                <para>关于Content-Type更多可能的取值，自己参考官网的解释：<link xl:href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.17">14.17 Content-Type</link></para>
+                <note xml:id="note.header_contenttype"><title>header中的Content-Type支持多种写法</title>
+                    <para>由具体的实现代码：</para>
+                    <programlisting language="csharp">
+<![CDATA[
+                    else if (
+                            (lowecaseHeader == "content-type") ||
+                            (lowecaseHeader == "contenttype") ||
+                            (lowecaseHeader == "content type")
+                            )
+                    {
+                        req.ContentType = headerValue;
+                    }
+]]>
+                    </programlisting>
+                    <para>可以看出，此处的"Content-Type"，写成别的形式，也是支持的，比如："content-type"，"contenttype"，"ContentType"，"content type"，"Content Type"</para>
+                </note>
+            </sect4>
+
+            <sect4 xml:id="geturlresphtml_example_header_others"><title>getUrlRespHtml用法示例：设置其他的特定的header</title>
+                <para>在很多时候，都需要设置，某些其他的，非标准的，header信息，则也可以去通过header设置。</para>
+                <para>比如，之前折腾<link xl:href="http://code.google.com/p/insertskydrivefiles/">InsertSkydriveFiles</link>时所用到的：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    string createFolerUrl = "https://skydrive.live.com/API/2/AddFolder?lct=1";
+    
+    Dictionary<string, string> headerDict = new Dictionary<string, string>();
+    headerDict.Add("Accept", "application/json");
+    headerDict.Add("Referer", constSkydriveUrl);
+    headerDict.Add("Canary", gCanary);
+    headerDict.Add("Appid", gAppid);
+    headerDict.Add("X-Requested-With", "XMLHttpRequest");
+    headerDict.Add("Cache-Control", "no-cache");
+
+    string postDataStr = genCreateFolderPostData(folderName, parentId, cid);
+
+    respJson = getUrlRespHtml(createFolerUrl, headerDict:headerDict, postDataStr:postDataStr);
+]]>
+                </programlisting>
+                <note xml:id="note.header_others"><title>指定某些特定的header</title>
+                    <para>由具体的实现代码：</para>
+                    <programlisting language="csharp">
+<![CDATA[
+                    else
+                    {
+                        req.Headers[header] = headerValue;
+                    }
+]]>
+                    </programlisting>
+                    <para>可以看出，此处，不限制你所指定的，其他某些特殊的header，但是你自己要清楚，你设置的什么header，是用来干什么用的。</para>
+                </note>
+            </sect4>
+        </sect3>
+
+        <sect3 xml:id="geturlresphtml_example_charset"><title>getUrlRespHtml用法示例：设置网页字符编码charset</title>
+            <para>有时候，已经网页是某种编码的，所以为了正确解析返回的html，需要指定对应的字符编码charset：</para>
+            <programlisting language="csharp">
+<![CDATA[
+    string songtasteUserUrl = "http://www.songtaste.com/user/351979/";
+    string songtasteHtmlCharset = "GB18030";
+    string respHtmlUnicode = getUrlRespHtml(songtasteUserUrl, charset:songtasteHtmlCharset);
+]]>
+            </programlisting>
+            <para>即可返回对应的，已经解码后的，Unicode字符串了。</para>
+        </sect3>
+
+        <sect3 xml:id="geturlresphtml_example_timeout"><title>getUrlRespHtml用法示例：设置网络超时timeout时间</title>
+            <para>如果你觉得默认的网络超时时间30秒不合适，可以自己另外指定，比如：</para>
+            <programlisting language="csharp">
+<![CDATA[
+    int timeoutInMilliSec = 10 * 1000;
+    string respHtml = getUrlRespHtml(someUrl, timeout:timeoutInMilliSec);
+]]>
+            </programlisting>
+        </sect3>
+
+        <sect3 xml:id="geturlresphtml_example_readwritetimeout"><title>getUrlRespHtml用法示例：设置Stream的读写超时readWriteTimeout时间</title>
+            <para>如果你觉得默认的Stream的读写超时时间30秒不合适，可以自己另外指定，比如：</para>
+            <programlisting language="csharp">
+<![CDATA[
+    int streamRdWrTimeout = 20 * 1000;
+    string respHtml = getUrlRespHtml(someUrl, readWriteTimeout:streamRdWrTimeout);
+]]>
+            </programlisting>
+        </sect3>
+
+        <sect3 xml:id="geturlresphtml_example_post"><title>getUrlRespHtml用法示例：POST操作</title>
+            <para>在模拟登陆时，往往会用到POST，会传递对应的POST数据</para>
+            <para>此处，主要有两种方式传递POST数据：</para>
+            <itemizedlist>
+                <listitem>postDict
+                    <para>一般都是通过postDict传递数据进去</para>
+                    <para>然后内部通过quoteParas转换为对应的post data，是以"&amp;"为分隔符的。</para>
+                </listitem>
+                <listitem>postDataStr
+                    <para>个别情况下，特殊的情况下，会用到此postDataStr</para>
+                    <para>其传递的post数据，是以换行为分隔符的。此时需要，不设置postDict（默认为null），然后设置对应的postDataStr即可。</para>
+                </listitem>
+            </itemizedlist>
+            <para>下面，针对两种情况，都给出对应的多个示例来说明如何使用：</para>
+            
+            <sect4 xml:id="postdict_example_getdomainpagerank"><title>postDict示例：getDomainPageRank</title>
+                <para>比如，之前折腾：<xref linkend="getdomainpagerank" />时所用到的：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    //Method 1: use http://www.pagerankme.com/
+    queryUrl = "http://www.pagerankme.com/";
+    postDict = new Dictionary<string, string>();
+    postDict.Add("url", domainUrl);
+    respHtml = getUrlRespHtml(queryUrl, postDict: postDict);
+]]>
+                </programlisting>
+            </sect4>
+
+            <sect4 xml:id="postdict_example_downloadsongtastemusic"><title>postDict示例：downloadSongtasteMusic</title>
+                <para>比如，之前折腾：<link xl:href="http://www.crifan.com/crifan_released_all/website/dotnet/downloadsongtastemusic/">DownloadSongtasteMusic</link>时所用到的：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    const string stHtmlCharset = "GB18030";
+
+    Dictionary<string, string> headerDict = new Dictionary<string, string>();
+    headerDict.Add("x-requested-with", "XMLHttpRequest");
+    // when click play
+    // access http://songtaste.com/time.php, post data:
+    //str=5bf271ccad05f95186be764f725e9aaf07e0c7791a89123a9addb2a239179e64c91834c698a9c5d82f1ced3fe51ffc51&sid=3015123&t=0
+    Dictionary<string, string> postDict = new Dictionary<string, string>();
+    postDict.Add("str", str);
+    postDict.Add("sid", sid);
+    postDict.Add("t", "0");
+    string getRealAddrUrl = "http://songtaste.com/time.php";
+    songInfo.realAddr = crl.getUrlRespHtml(getRealAddrUrl, headerDict:headerDict, postDict:postDict, charset:stHtmlCharset);
+]]>
+                </programlisting>
+            </sect4>
+
+            <sect4 xml:id="postdatastr_example_baidu_api"><title>postDataStr示例：百度API上传文件</title>
+                <para>比如，之前折腾：<link xl:href="http://www.crifan.com/baidu_api_single_file_upload_403_forbidden/">【未解决】通过百度API上传单个文件出现403的错误</link>时所遇到的就是，post数据是以换行符非分隔符的，所以就要去直接设置对应的postDataStr：</para>
+                <programlisting language="csharp">
+<![CDATA[
+string[] token = respTokenJson.Split(',');
+ 
+string tokenStr = token[2].Split(':')[1].Trim('"');
+ 
+byte[] fileBytes = null;
+string filename = "fileForUpload2.txt";
+string fullFilePath = @"d:\" + filename;
+using (FileStream fs = new FileStream(fullFilePath, FileMode.Open))
+{
+    fileBytes = new byte[fs.Length];
+    fs.Read(fileBytes, 0, fileBytes.Length);
+}
+ 
+StringBuilder buffer = new StringBuilder();
+char[] fileCh = new char[fileBytes.Length];
+for (int i = 0; i < fileBytes.Length; i++)
+    fileCh[i] = (char)fileBytes[i];
+ 
+buffer.Append(fileCh);
+//postDict = new Dictionary<string, string>();
+//postDict.Add("file", buffer.ToString());
+ 
+string postDataStr = buffer.ToString();
+ 
+string uploadSingleFileUrl = "https://pcs.baidu.com/rest/2.0/pcs/file?";
+Dictionary<string, string> queryParaDict = new Dictionary<string, string>();
+queryParaDict.Add("method", "upload");
+queryParaDict.Add("access_token", tokenStr);
+queryParaDict.Add("path", "/apps/测试应用/" + filename);
+uploadSingleFileUrl += crifanLib.quoteParas(queryParaDict);
+ 
+curCookies = crifanLib.getCurCookies();
+newCookies = new CookieCollection();
+foreach (Cookie ck in curCookies)
+{
+    if (ck.Name == "BAIDUID" || ck.Name == "BDUSS")
+    {
+        ck.Domain = "pcs.baidu.com";
+    }
+ 
+    newCookies.Add(ck);
+}
+crifanLib.setCurCookies(newCookies);
+ 
+string boundaryValue = "----WebKitFormBoundaryS0JIa4uHF7yHd8xJ";
+string boundaryExpression = "boundary=" + boundaryValue;
+ 
+headerDict = new Dictionary<string, string>();
+headerDict.Add("Pragma", "no-cache");
+headerDict.Add("Content-Type", "multipart/form-data;" + " " + boundaryExpression);
+ 
+postDataStr = boundaryValue + "\r\n"
+            + "Content-Disposition: form-data; name=\"file\"" + "\r\n"
+            + postDataStr + "\r\n"
+            + boundaryValue;
+ 
+//string str = crifanLib.getUrlRespHtml(
+//    string.Format(@"https://pcs.baidu.com/rest/2.0/pcs/file?method=upload&path=%2Fapps%2F%E6%B5%8B%E8%AF%95%E5%BA%94%E7%94%A8%2F78.jpg&access_token={0}", tokenStr),
+//    headerDict, postDict);
+string respJson = crifanLib.getUrlRespHtml(uploadSingleFileUrl, headerDict:headerDict, postDataStr: postDataStr);
+]]>
+                </programlisting>
+            </sect4>
+
+            <sect4 xml:id="postdatastr_example_netease_blog"><title>postDataStr示例：网易的心情随笔</title>
+                <para>比如，之前折腾：<link xl:href="http://www.crifan.com/blogstowordpress_add_feeling_card_for_163_netease_blog/">【记录】给BlogsToWordPress添加支持导出网易的心情随笔</link>时所遇到的就是，post数据是以换行符非分隔符的，所以就要去直接设置对应的postDataStr：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    string postDataStr =
+        "callCount=1" + "\r\n" +
+        "scriptSessionId=${scriptSessionId}187" + "\r\n" +
+        "c0-scriptName=BlogBeanNew" + "\r\n" +
+        "c0-methodName=getBlogs" + "\r\n" +
+        "c0-id=0" + "\r\n" +
+        "c0-param0=" + "number:" + userId + "\r\n" +
+        "c0-param1=" + "number:" + startBlogIdx + "\r\n" +
+        "c0-param2=" + "number:" + onceGetNum;
+
+    //http://api.blog.163.com/ni_chen/dwr/call/plaincall/BlogBeanNew.getBlogs.dwr
+    string getBlogsDwrMainUrl = blogApi163 + "/" + blogUser + "/" + "dwr/call/plaincall/BlogBeanNew.getBlogs.dwr";
+         
+    Dictionary<string, string> headerDict = new Dictionary<string, string>();
+    headerDict = new Dictionary<string, string>();
+    //Referer    http://api.blog.163.com/crossdomain.html?t=20100205
+    headerDict.Add("Referer", "http://api.blog.163.com/crossdomain.html?t=20100205");
+    headerDict.Add("Content-Type", "text/plain");
+    
+    string blogsRespHtml = getUrlRespHtml(getBlogsDwrMainUrl, headerDict:headerDict, postDataStr:postDataStr);
+]]>
+                </programlisting>
+            </sect4>
+        </sect3>
+    </sect2>
+
+</sect1>
+
+
+<sect1 xml:id="geturlresphtml_multitry"><title>多次尝试版本的getUrlRespHtml:getUrlRespHtml_multiTry</title>
+    <para>默认的getUrlRespHtml只允许一次，即当出错时，就返回空字符串了，就不再继续了。</para>
+    <para>此处的getUrlRespHtml_multiTry，是带多次尝试的版本。</para>
+    <para>其完整代码是：</para>
+    <programlisting language="csharp">
+<![CDATA[
+    public string getUrlRespHtml_multiTry
+                                    (string url,
+                                    Dictionary<string, string> headerDict = defHeaderDict,
+                                    string charset = defCharset,
+                                    Dictionary<string, string> postDict = defPostDict,
+                                    int timeout = defTimeout,
+                                    string postDataStr = defPostDataStr,
+                                    int readWriteTimeout = defReadWriteTimeout,
+                                    int maxTryNum = defMaxTryNum,
+                                    int retryFailSleepTime = defRetryFailSleepTime)          
+    {
+        string respHtml = "";
+
+        for (int tryIdx = 0; tryIdx < maxTryNum; tryIdx++)
+        {
+            respHtml = getUrlRespHtml(url, headerDict, charset, postDict, timeout, postDataStr, readWriteTimeout);
+            if (!string.IsNullOrEmpty(respHtml))
+            {
+                break;
+            }
+            else
+            {
+                //something wrong
+                //maybe network is not stable
+                //so wait some time, then re-do it
+                System.Threading.Thread.Sleep(retryFailSleepTime);
+            }
+        }
+
+        return respHtml;
+    }
+]]>
+    </programlisting>
+
+    <sect2 xml:id="geturlresphtml_multitry_para"><title>getUrlRespHtml_multiTry 的参数详解</title>
+        <para>很明显可以看出，此处的getUrlRespHtml_multiTry的很多参数，和前面介绍的<xref linkend="geturlresphtml" />非常类似。</para>
+        <para>此处，还有另外两个参数，需要解释一下：</para>
+        <itemizedlist>
+            <listitem>maxTryNum
+                <para>maxTryNum表示最大（当出错时）重试次数。</para>
+                <para>maxTryNum默认值是defMaxTryNum</para>
+                <para>defMaxTryNum的值是5：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    private const int defMaxTryNum = 5;
+]]>
+                </programlisting>
+                <para>当你需要，在出错时，重试更多次，则可以修改此参数。</para>
+            </listitem>
+            <listitem>retryFailSleepTime
+                <para>retryFailSleepTime表示在每次出错之后，sleep的时间。</para>
+                <para>retryFailSleepTime默认值是defRetryFailSleepTime</para>
+                <para>defRetryFailSleepTime的值是100毫秒：</para>
+                <programlisting language="csharp">
+<![CDATA[
+    private const int defRetryFailSleepTime = 100; //sleep time in ms when retry fail for getUrlRespHtml
+]]>
+                </programlisting>
+                <para>此处，是为了，尽量适应网络不稳定等异常情况，在出错后，sleep一段时间重试，以希望实现，网络不稳定的时候，经过多次尝试，且每次错误后会sleep，达到增大网络访问成功的机会。</para>
+            </listitem>
+        </itemizedlist>
+    </sect2>
+
+    <para></para>
+    <example xml:id="eg.geturlresphtml_multitry"><title>getUrlRespHtml_multiTry 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+    //respHtml = crl.getUrlRespHtml(viewHtmlUrl);
+    respHtml = crl.getUrlRespHtml_multiTry(viewHtmlUrl);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="geturlrespstreambytes"><title>获得Url地址所返回的二进制数据流:getUrlRespStreamBytes</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    public int getUrlRespStreamBytes(ref Byte[] respBytesBuf,
+                                string url,
+                                Dictionary<string, string> headerDict,
+                                Dictionary<string, string> postDict,
+                                int timeout,
+                                Action<int> funcUpdateProgress)
+    {
+        int realReadoutLen = 0;
+        getUrlRespStreamBytes_bw(ref respBytesBuf, url, headerDict, postDict, timeout, funcUpdateProgress);
+        while (bNotCompleted_download)
+        {
+            System.Windows.Forms.Application.DoEvents();
+        }
+        realReadoutLen = gRealReadoutLen;
+
+        //clear
+        gRealReadoutLen = 0;
+
+        return realReadoutLen;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.geturlrespstreambytes"><title>getUrlRespStreamBytes 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+        public bool downloadStMusicFile(string musicRealAddr, string fullnameToStore, out string errStr, Action<int> funcUpdateProgress)
+        {
+            bool downloadOk = false;
+            errStr = "未知错误！";
+
+            if (musicRealAddr == null || 
+                musicRealAddr == "" ||
+                fullnameToStore == null ||
+                fullnameToStore == "")
+            {
+                errStr = "Songtaste歌曲真实的地址无效！";
+                return downloadOk;
+            }
+            
+            Dictionary<string, string> headerDict = new Dictionary<string, string>();
+            //headerDict.Add("Referer", "http://songtaste.com/music/");
+            headerDict.Add("Referer", "http://songtaste.com/");
+
+            //const int maxMusicFileLen = 100 * 1024 * 1024; // 100M
+            const int maxMusicFileLen = 300 * 1024 * 1024; // 300M
+            Byte[] binDataBuf = new Byte[maxMusicFileLen];
+
+            int respDataLen = crl.getUrlRespStreamBytes(ref binDataBuf, musicRealAddr, headerDict, null, 0, funcUpdateProgress);
+            if (respDataLen < 0)
+            {
+                errStr = "无法读取歌曲数据！";
+                return downloadOk;
+            }
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="translatestring"><title>（谷歌）翻译一段话:translateString</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //-----------------------------------------------------------------------------
+    //translate strToTranslate from fromLanguage to toLanguage
+    //return the translated string
+    //return empty string if error
+    //some frequently used language abbrv:
+    //Chinese Simplified:   zh-CN
+    //Chinese Traditional:  zh-TW
+    //English:              en
+    //German:               de
+    //Japanese:             ja
+    //Korean:               ko
+    //French:               fr    
+    //more can be found at: 
+    //http://code.google.com/intl/ru/apis/language/translate/v2/using_rest.html#language-params
+    public string translateString(string strToTranslate, string fromLanguage, string toLanguage)
+    {
+        string translatedStr = "";
+        string transRetHtml = "";
+
+        ////following refer: http://python.u85.us/viewnews-335.html
+        //string googleTranslateUrl = "http://translate.google.cn/translate_t";
+        //Dictionary<string, string> postDict = new Dictionary<string, string>();
+        //postDict.Add("hl", "zh-CN");
+        //postDict.Add("ie", "UTF-8");
+        //postDict.Add("text", strToTranslate);
+        //postDict.Add("langpair", fromLanguage + "|" + toLanguage);
+        //const string googleTransHtmlCharset = "UTF-8";
+        //string transRetHtml = getUrlRespHtml(googleTranslateUrl, charset:googleTransHtmlCharset, postDict:postDict);
+
+
+        ////http://translate.google.cn/#zh-CN/en/%E4%BB%96%E4%BB%AC%E6%98%AF%E8%BF%99%E6%A0%B7%E8%AF%B4%E7%9A%84
+        //string googleTransBaseUrl = "http://translate.google.cn/#";
+        //strToTranslate = "他们是这样说的";
+        //string encodedStr = HttpUtility.UrlEncode(strToTranslate);
+        //string googleTransUrl = googleTransBaseUrl + fromLanguage + "/" + toLanguage + "/" + encodedStr;
+        //string transRetHtml = getUrlRespHtml(googleTransUrl);
+
+
+        //http://translate.google.cn/translate_a/t?client=t&text=%E4%BB%96%E4%BB%AC%E6%98%AF%E8%BF%99%E6%A0%B7%E8%AF%B4%E7%9A%84&hl=zh-CN&sl=zh-CN&tl=en&ie=UTF-8&oe=UTF-8&multires=1&ssel=0&tsel=0&sc=1
+        //strToTranslate = "他们是这样说的";
+        string encodedStr = HttpUtility.UrlEncode(strToTranslate);
+        string googleTransBaseUrl = "http://translate.google.cn/translate_a/t?";
+        string googleTransUrl = googleTransBaseUrl;
+        googleTransUrl  += "&client=" + "t";
+        googleTransUrl += "&text=" + encodedStr;
+        googleTransUrl += "&hl=" + "zh-CN";
+        googleTransUrl += "&sl=" + fromLanguage;// source   language
+        googleTransUrl += "&tl=" + toLanguage;  // to       language
+        googleTransUrl += "&ie=" + "UTF-8";     // input    encode
+        googleTransUrl += "&oe=" + "UTF-8";     // output   encode
+
+        try
+        {
+            transRetHtml = getUrlRespHtml_multiTry(googleTransUrl);
+            //[[["They say","他们是这样说的","","Tāmen shì zhèyàng shuō de"]],,"zh-CN",,[["They",[5],0,0,1000,0,1,0],["say",[6],1,0,1000,1,2,0]],[["他们 是",5,[["They",1000,0,0],["they are",0,0,0],["they were",0,0,0],["that they are",0,0,0],["they are the",0,0,0]],[[0,3]],"他们是这样说的"],["这样 说",6,[["say",1000,1,0],["said",0,1,0],["say so",0,1,0],["says",0,1,0],["say this",0,1,0]],[[3,6]],""]],,,[["zh-CN"]],1]
+            
+            if (extractSingleStr(@"\[\[\[""(.+?)"","".+?"",", transRetHtml, out translatedStr))
+            {
+                //extrac out:They say
+            }
+        }
+        catch
+        {
+            // if pass some special string, such as "彭德怀", then will occur 500 error
+            // here tmp not process the error, just omit it here
+        }
+        
+        return translatedStr;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.translatestring"><title>translateString 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+    string strToTranslate = "他们是这样说的";
+    string translatedStr = translateString(strToTranslate, "zh-CN", "en");
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="transzhcntoen"><title>将中文翻译为英文:transzhcntoen</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    public string transZhcnToEn(string strToTranslate)
+    {
+        return translateString(strToTranslate, "zh-CN", "en");
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.transzhcntoen"><title>transzhcntoen 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+    string strToTranslate = "他们是这样说的";
+    string translatedEnglishStr = transZhcnToEn(strToTranslate);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="getdomainpagerank"><title>查找获得域名的Page Rank:getDomainPageRank</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //get page rank for some domain url
+    //para: http://answers.yahoo.com
+    //return: 7
+    public int getDomainPageRank(string domainUrl)
+    {
+        int pageRank = 0;
+        string queryUrl = "";
+        string respHtml = "";
+        Dictionary<string, string> postDict = new Dictionary<string,string>();
+        string rankStr = "";
+        bool prevMethodFail = true;
+
+        if ((pageRank == 0) && prevMethodFail)
+        {
+            //Method 1: use http://www.pagerankme.com/
+            queryUrl = "http://www.pagerankme.com/";
+            postDict = new Dictionary<string, string>();
+            postDict.Add("url", domainUrl);
+            respHtml = getUrlRespHtml_multiTry(queryUrl, postDict: postDict);
+            //<a href="http://www.pagerankme.com" target="_blank" style="text-decoration:none;color:#000000;">PageRank 7</a>
+            rankStr = "";
+            if (extractSingleStr(@"<a href=""http://www\.pagerankme\.com"" target=""_blank"" style="".+?"">PageRank (\d+)</a>", respHtml, out rankStr))
+            {
+                pageRank = Int32.Parse(rankStr);
+                prevMethodFail = false;
+            }
+            else
+            {
+                prevMethodFail = true;
+            }
+        }
+
+        if ((pageRank == 0) && prevMethodFail)
+        {
+            //Method 2: use http://moonsy.com/pagerank_checker/
+            //(1) http://moonsy.com/pagerank_checker/
+            queryUrl = "http://moonsy.com/pagerank_checker/";
+            postDict = new Dictionary<string, string>();
+            postDict.Add("domain", domainUrl);
+            postDict.Add("Submit", "CHECK");
+
+            respHtml = getUrlRespHtml_multiTry(queryUrl, postDict: postDict);
+
+            //<h3>Your Page Rank: 7/10
+            rankStr = "";
+            if (extractSingleStr(@"<h3>Your Page Rank.+?(\d+)/10", respHtml, out rankStr))
+            {
+                pageRank = Int32.Parse(rankStr);
+                prevMethodFail = false;
+            }
+            else
+            {
+                prevMethodFail = true;
+            }
+        }
+
+        if ((pageRank == 0) && prevMethodFail)
+        {
+            //Method 3: use http://pagerank.webmasterhome.cn/
+            string noHttpPreDomainUrl = Regex.Replace(domainUrl, "((https)|(http)|(ftp))://", "");
+
+            //http://pagerank.webmasterhome.cn/prLoading.asp?domain=answers.yahoo.com
+
+            string tmpRespHtml = "";
+            Dictionary<string, string> headerDict;
+            //(1)to get cookies
+            string pageRankMainUrl = "http://pagerank.webmasterhome.cn/";
+            tmpRespHtml = getUrlRespHtml_multiTry(pageRankMainUrl);
+            //(2)ask page rank
+            string firstBaseUrl = "http://pagerank.webmasterhome.cn/?domain=";
+            //http://pagerank.webmasterhome.cn/?domain=answers.yahoo.com
+            string firstWholeUrl = firstBaseUrl + noHttpPreDomainUrl;
+            headerDict = new Dictionary<string, string>();
+            headerDict.Add("referer", pageRankMainUrl);
+            tmpRespHtml = getUrlRespHtml_multiTry(firstWholeUrl, headerDict: headerDict);
+
+            string baseUrl = "http://pagerank.webmasterhome.cn/prLoading.asp?domain=";
+            //http://pagerank.webmasterhome.cn/prLoading.asp?domain=answers.yahoo.com
+            queryUrl = baseUrl + noHttpPreDomainUrl;
+            headerDict = new Dictionary<string, string>();
+            headerDict.Add("referer", firstWholeUrl);
+            respHtml = getUrlRespHtml_multiTry(queryUrl, headerDict: headerDict);
+
+            //'<img src=\"http://primg.webmasterhome.cn/pr7.gif\" style=\"width:40px;height:5px;border:0px;\" alt=PageRank align=absmiddle> (7/10)'
+            rankStr = "";
+            if (extractSingleStr(@"\((\d+)/10\)", respHtml, out rankStr))
+            {
+                pageRank = Int32.Parse(rankStr);
+                prevMethodFail = false;
+            }
+            else
+            {
+                prevMethodFail = true;
+            }
+        }
+
+        //TODO:
+        //Google PR (PageRank) Checker
+        //http://www.searchbliss.com/seo-tools/google-pagerank-checker.php
+        //tmp is "We're sorry, the Google PR check is currently being repaired."
+        //future: if Ok, mayby can use it
+
+        return pageRank;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.getdomainpagerank"><title>getDomainPageRank 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+        public struct searchItemInfo
+        {
+            public string title;
+            public string googleUrl; // with google appendix
+            public string originalUrl;
+            public string description;
+            //add domain url and rank
+            public string domainUrl;
+            public int pageRank;
+            public int alexaRank;
+        };
+        
+        singleItemInfo.domainUrl = crifanLib.getDomainUrl(singleItemInfo.originalUrl);
+        singleItemInfo.pageRank = crifanLib.getDomainPageRank(singleItemInfo.domainUrl);
+        singleItemInfo.alexaRank = crifanLib.getDomainAlexaRank(singleItemInfo.domainUrl);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="getdomainalexarank"><title>查找获得域名的Alexa Rank:getDomainAlexaRank</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //get alexa rank for some domain url
+    //para: http://answers.yahoo.com
+    //return: 4
+    public int getDomainAlexaRank(string domainUrl)
+    {
+        int alexaRank = 0;
+        string queryUrl = "";
+        string respHtml = "";
+        Dictionary<string, string> postDict = new Dictionary<string, string>();
+        string alexaRankStr = "";
+        bool prevMethodFail = true;
+
+        //string noHttpPreDomainUrl = Regex.Replace(domainUrl, "((https)|(http)|(ftp))://", "");
+                
+        if ((alexaRank == 0) && prevMethodFail)
+        {
+            //Method 1: use http://www.searchbliss.com/rank.asp
+            string mainUrl = "http://www.searchbliss.com/rank.asp";
+            respHtml = getUrlRespHtml_multiTry(mainUrl);
+            //<input type="hidden" name="RAC" value="EIS">
+            string accessCode = "";
+            if (extractSingleStr(@"<input\s+type=""hidden""\s+name=""RAC""\s+value=""([A-Z]+)"">", respHtml, out accessCode))
+            {
+                queryUrl = "http://www.searchbliss.com/rank.asp";
+                //AC	EIS
+                //RAC	EIS
+                //rank	http://hubpages.com
+                postDict = new Dictionary<string, string>();
+                //postDict.Add("domain", noHttpPreDomainUrl);
+                postDict.Add("AC", accessCode);
+                postDict.Add("RAC", accessCode);
+                postDict.Add("rank", domainUrl);
+                respHtml = getUrlRespHtml_multiTry(queryUrl, postDict: postDict);
+                //<a href="http://www.alexa.com/data/details/main/http://hubpages.com" target="_blank">444</a>
+                if (extractSingleStr(@"<a\s+href=""http://www\.alexa\.com/data/details/main/.+?""\s+target=""_blank"">(\d+)</a>", respHtml, out alexaRankStr))
+                {
+                    //alexaRank = Int32.Parse(alexaRankStr);
+                    if (Int32.TryParse(alexaRankStr, out alexaRank))
+                    {
+                        prevMethodFail = false;
+                    }
+                    else
+                    {
+                        prevMethodFail = true;
+                    }
+
+                    prevMethodFail = false;
+                }
+                else
+                {
+                    prevMethodFail = true;
+                }
+            }
+            else 
+            {
+                prevMethodFail = true;
+            }
+        }
+        
+        #if USE_HTML_PARSER_HTMLAGILITYPACK
+        if ((alexaRank == 0) && prevMethodFail)
+        {
+            //Method 2: use http://www.alexa.com/
+            string tmpUrl = "http://www.alexa.com";
+            //to get cookies
+            string tmpRespHtml = getUrlRespHtml_multiTry(tmpUrl);
+            //then do work
+            queryUrl = "http://www.alexa.com/search";
+            //http://www.alexa.com/search?q=crifan.com&r=home_home&p=bigtop
+            queryUrl += "?q=" + domainUrl;
+            queryUrl += "&r=" + "home_home";
+            queryUrl += "&p=" + "bigtop";
+            respHtml = getUrlRespHtml_multiTry(queryUrl);
+
+            HtmlAgilityPack.HtmlDocument htmlDoc = htmlToHtmlDoc(respHtml);
+            HtmlNode rootHtmlNode = htmlDoc.DocumentNode;
+
+            //<span>
+            //<img class="align-top" src="/images/icons/globe-sm.gif" />
+            //<span class="traffic-stat-label">Alexa Traffic Rank:</span>
+            //<a href="/siteinfo/yahoo.com#trafficstats">
+            //4</a>
+            //</span>
+
+            //<span class="traffic-stat-label">Alexa Traffic Rank:</span>
+            //<a href="/siteinfo/crifan.com#trafficstats">
+            //170,557</a>
+            //</span>
+            //HtmlNode trafficHtmlNode = rootHtmlNode.SelectSingleNode("//span/span[@class='traffic-stat-label']/a[@href]");
+            //HtmlNode trafficHtmlNode = rootHtmlNode.SelectSingleNode("//span/span[@class='traffic-stat-label']/a]");
+            //HtmlNodeCollection trafficHtmlNodes = rootHtmlNode.SelectNodes("//span/span[@class='traffic-stat-label']");
+            HtmlNode trafficHtmlNode = rootHtmlNode.SelectSingleNode("//span/span[@class='traffic-stat-label']");
+            if ((trafficHtmlNode != null) && (trafficHtmlNode.InnerText.StartsWith("Alexa Traffic Rank:")))
+            {
+                HtmlNode parentHtmlNode = trafficHtmlNode.ParentNode;
+                HtmlNode aHrefNode = parentHtmlNode.SelectSingleNode(".//a[@href]");
+                string tracfficNumberStr = aHrefNode.InnerText;
+                alexaRankStr = tracfficNumberStr.Trim().Replace(",", "");
+                                
+                //speical:
+                //"No Data"
+                //alexaRank = Int32.Parse(alexaRankStr);
+                if(Int32.TryParse(alexaRankStr, out alexaRank))
+                {
+                    prevMethodFail = false;
+                }
+                else
+                {
+                    prevMethodFail = true;
+                }
+            }
+            else
+            {
+                prevMethodFail = true;
+            }
+        }
+        #endif
+        
+        if ((alexaRank == 0) && prevMethodFail)
+        {
+            //Method 3: use http://moonsy.com/alexa_rank/
+
+            //(1) http://moonsy.com/alexa_rank/
+            queryUrl = "http://moonsy.com/alexa_rank/";
+            postDict = new Dictionary<string, string>();
+            //postDict.Add("domain", noHttpPreDomainUrl);
+            postDict.Add("domain", domainUrl);
+            postDict.Add("Submit", "CHECK");
+
+            respHtml = getUrlRespHtml_multiTry(queryUrl, postDict: postDict);
+
+            //<h2>Alexa Rank of <b>ANSWERS.YAHOO.COM</b> is : <b>4</b></h2>
+            alexaRankStr = "";
+            if (extractSingleStr(@"<h2>Alexa Rank of.+?is.+?(\d+).+?</h2>", respHtml, out alexaRankStr))
+            {
+                //alexaRank = Int32.Parse(alexaRankStr);
+                if (Int32.TryParse(alexaRankStr, out alexaRank))
+                {
+                    prevMethodFail = false;
+                }
+                else
+                {
+                    prevMethodFail = true;
+                }
+
+                prevMethodFail = false;
+            }
+            else
+            {
+                prevMethodFail = true;
+            }
+        }
+
+        //TODO:
+        //maybe future can use:
+        //http://www.dakola.com/tools/alexa/
+        
+        return alexaRank;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.getdomainalexarank"><title>getDomainAlexaRank 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+        public struct searchItemInfo
+        {
+            public string title;
+            public string googleUrl; // with google appendix
+            public string originalUrl;
+            public string description;
+            //add domain url and rank
+            public string domainUrl;
+            public int pageRank;
+            public int alexaRank;
+        };
+        
+        singleItemInfo.domainUrl = crifanLib.getDomainUrl(singleItemInfo.originalUrl);
+        singleItemInfo.pageRank = crifanLib.getDomainPageRank(singleItemInfo.domainUrl);
+        singleItemInfo.alexaRank = crifanLib.getDomainAlexaRank(singleItemInfo.domainUrl);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+
+</chapter>

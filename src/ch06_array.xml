@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="array">
+<title>crifanLib.cs之Array</title>
+
+<para>此处是和数组（Array）有关的函数</para>
+
+<sect1 xml:id="getsubstrarr"><title>从给定字符串中，从指定位置，提取指定长度的子字符串:getSubStrArr</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //given a string array 'origStrArr', get a sub string array from 'startIdx', length is 'len'
+    public string[] getSubStrArr(string[] origStrArr, int startIdx, int len)
+    {
+        string[] subStrArr = new string[] { };
+        if ((origStrArr != null) && (origStrArr.Length > 0) && (len > 0))
+        {
+            List<string> strList = new List<string>();
+            int endPos = startIdx + len;
+            if (endPos > origStrArr.Length)
+            {
+                endPos = origStrArr.Length;
+            }
+
+            for (int i = startIdx; i < endPos; i++)
+            {
+                //refer: http://zhidao.baidu.com/question/296384408.html
+                strList.Add(origStrArr[i]);
+            }
+
+            subStrArr = new string[len];
+            strList.CopyTo(subStrArr);
+        }
+
+        return subStrArr;
+    }
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.getsubstrarr"><title>getSubStrArr 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+string[] fieldExpressions = getSubStrArr(expressions, 1, expressions.Length - 1);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+
+</chapter>

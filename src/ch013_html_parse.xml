@@ -1,0 +1,305 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="html_parse">
+<title>crifanLib.cs之Html Parse</title>
+
+<sect1 xml:id="htmltoxmldoc"><title>将HTML转换为XmlDocument:htmlToXmlDoc</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    #if USE_HTML_PARSER_SGML
+    //convert html to XML document
+    public XmlDocument htmlToXmlDoc(string html)
+    {
+        // setup SgmlReader
+        SgmlReader sgmlReader = new SgmlReader();
+        sgmlReader.DocType = "HTML";
+        sgmlReader.WhitespaceHandling = WhitespaceHandling.All;
+        sgmlReader.CaseFolding = Sgml.CaseFolding.ToLower;
+
+        string decodedHtml = HttpUtility.HtmlDecode(html);
+        sgmlReader.InputStream = new StringReader(decodedHtml);
+
+        // create document
+        XmlDocument xmlDoc = new XmlDocument();
+        xmlDoc.PreserveWhitespace = true;
+        xmlDoc.XmlResolver = null;
+        xmlDoc.Load(sgmlReader);
+
+        return xmlDoc;
+    }
+    #endif
+]]>
+    </programlisting>
+    <example xml:id="eg.htmltoxmldoc"><title>htmlToXmlDoc 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+        //(1) with xmlns
+        string withXmlnsUrl = "http://fiverr.com/gigs/search?utf8=%E2%9C%93&query=seo&x=15&y=13&page=2";
+        string withXmlnsHtml = getUrlRespHtml(withXmlnsUrl);
+        XmlDocument xmlDocWithNs = htmlToXmlDoc(withXmlnsHtml);
+]]>
+        </programlisting>
+    </example>
+    <para>另外，贴出，完整的示例代码：</para>
+    <programlisting language="csharp">
+<![CDATA[
+    //example code for html parse
+    void _demoHtmlParse()
+    {
+        #if USE_HTML_PARSER_SGML
+        //Method 1: use  htmlToXmlDoc
+        //(1) with xmlns
+        string withXmlnsUrl = "http://fiverr.com/gigs/search?utf8=%E2%9C%93&query=seo&x=15&y=13&page=2";
+        string withXmlnsHtml = getUrlRespHtml(withXmlnsUrl);
+        XmlDocument xmlDocWithNs = htmlToXmlDoc(withXmlnsHtml);
+        //<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        //<html xmlns:og="http://ogp.me/ns#" xmlns:fb="http://www.facebook.com/2008/fbml" xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en" >
+        //  <head>
+        //      ...
+        XmlNamespaceManager m = new XmlNamespaceManager(xmlDocWithNs.NameTable);
+        m.AddNamespace("w3org", "http://www.w3.org/1999/xhtml");
+        XmlNode titleNode = xmlDocWithNs.SelectSingleNode("//w3org:h1[@itemprop='name']", m);
+        string title = titleNode.InnerText;
+
+        //(2) without xmlns
+        string withoutXmlnsUrl = "http://www.amazon.com/gp/new-releases/appliances/ref=zg_bsnr_nav_0";
+        //<!DOCTYPE html>
+        //<html>
+        //<head>
+        //...
+        string withoutXmlnsHtml = getUrlRespHtml(withoutXmlnsUrl);
+        XmlDocument xmlDocNoNs = htmlToXmlDoc(withoutXmlnsHtml);
+        XmlNodeList pageNodeList = xmlDocNoNs.SelectNodes("//ol[@class='zg_pagination']/li[@class]");
+        #endif
+
+        //common part
+        //how to use Attributes
+        //XmlNodeList pageNodeList = xmlDoc.SelectNodes("//ol[@class='zg_pagination']/li[@class]");
+        //if (pageNodeList != null)
+        //{
+        //    for (int pageIdx = 1; pageIdx < pageNodeList.Count; pageIdx++)
+        //    {
+        //        XmlNode curPageNode = pageNodeList[pageIdx];
+        //        //<li class="zg_page " id="zg_page2"><a page="2" ajaxUrl="http://www.amazon.com/gp/new-releases/appliances/ref=zg_bsnr_appliances_pg_2/191-0874592-3518518?ie=UTF8&pg=2&ajax=1" href="http://www.amazon.com/gp/new-releases/appliances/ref=zg_bsnr_appliances_pg_2/191-0874592-3518518?ie=UTF8&pg=2">21-40</a></li>
+        //        XmlNode ajaxUrlNode = curPageNode.SelectSingleNode(".//a[@href]");
+        //        string pageUrl = ajaxUrlNode.Attributes["href"].Value;
+        //    }
+        //}
+
+
+        #if USE_HTML_PARSER_HTMLAGILITYPACK
+        //Method 2: use htmlToHtmlDoc
+        string testUrlWithXmlns = "http://sd.csdn.net/";
+        string respHtml = getUrlRespHtml(testUrlWithXmlns);
+
+        //<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        //<html xmlns="http://www.w3.org/1999/xhtml">
+        //<head>
+        HtmlAgilityPack.HtmlDocument htmlDoc = htmlToHtmlDoc(respHtml);
+        
+        //<div class="tabcontent" id="sc1">
+        //    <ul>
+        //    <li><a href="http://www.csdn.net/article/tag/%E4%BA%A7%E5%93%81" target="_blank">产品</a></li>
+        //    ......
+        //    <li><a href="http://www.csdn.net/article/tag/%E8%AE%BE%E8%AE%A1" target="_blank">设计</a></li>
+        //                        </ul>
+        //</div>
+        //...
+        //<div class="tabcontent" id="sc4">
+        //    <ul>
+        //          ...
+        //    <li><a href="http://www.csdn.net/article/tag/%E6%95%B0%E6%8D%AE%E5%BA%93"  target="_blank">数据库</a></li>
+        //                        </ul>
+        //</div>
+        
+        //here, no need to take care the html xmlns
+        //is better than SGMLReader
+        HtmlNode rootHtmlNode = htmlDoc.DocumentNode;
+        HtmlNodeCollection htmlNodes = rootHtmlNode.SelectNodes("//div[@class='tabcontent']");
+        foreach (HtmlNode link in htmlNodes)
+        {
+            HtmlAttribute att = link.Attributes["id"];
+            string idHref = att.Value;
+        }
+]]>
+    </programlisting>
+</sect1>
+
+<sect1 xml:id="htmltohtmldoc"><title>将HTML转换为HtmlAgilityPack的HtmlDocument:htmlToHtmlDoc</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    public HtmlAgilityPack.HtmlDocument htmlToHtmlDoc(string html)
+    {
+        HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
+
+        //http://www.crifan.com/htmlagilitypack_html_tag_form_option_no_child_via_sibling_get_innertext/
+        //make some html tag: form/option, has child
+        HtmlNode.ElementsFlags.Remove("form");
+        HtmlNode.ElementsFlags.Remove("option");
+
+        htmlDoc.LoadHtml(html);
+
+        return htmlDoc;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.htmltohtmldoc"><title>htmlToHtmlDoc 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+        //Method 2: use htmlToHtmlDoc
+        string testUrlWithXmlns = "http://sd.csdn.net/";
+        string respHtml = getUrlRespHtml(testUrlWithXmlns);
+
+        //<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        //<html xmlns="http://www.w3.org/1999/xhtml">
+        //<head>
+        HtmlAgilityPack.HtmlDocument htmlDoc = htmlToHtmlDoc(respHtml);
+]]>
+        </programlisting>
+    </example>
+    <para>注意，使用此函数之前，需要开启对应的宏USE_HTML_PARSER_HTMLAGILITYPACK，以及添加对应的dll库HtmlAgilityPack.dll的引用。</para>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="removesubhtmlnode"><title>去除HtmlNode中的子节点:removeSubHtmlNode</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    //remove sub node from current html node
+    //eg: 
+    //"script"
+    //for
+    //<script type="text/javascript"> 
+    public HtmlNode removeSubHtmlNode(HtmlNode curHtmlNode, string subNodeToRemove)
+    {
+        HtmlNode afterRemoved = curHtmlNode;
+        
+        ////method 1: fail
+        ////foreach (var subNode in afterRemoved.Descendants(subNodeToRemove))
+        //foreach (HtmlNode subNode in afterRemoved.Descendants(subNodeToRemove))
+        //{
+        //    //An unhandled exception of type 'System.InvalidOperationException' occurred in mscorlib.dll
+        //    //Additional information: Collection was modified; enumeration operation may not execute.
+            
+        //    //afterRemoved.RemoveChild(subNode);
+        //    //curHtmlNode.RemoveChild(subNode);
+        //    subNode.Remove();
+        //}
+
+        //method 2: OK
+        HtmlNodeCollection foundAllSub = curHtmlNode.SelectNodes(subNodeToRemove);
+        if ((foundAllSub != null) && (foundAllSub.Count > 0))
+        {
+            foreach (HtmlNode subNode in foundAllSub)
+            {
+                curHtmlNode.RemoveChild(subNode);
+            }
+        }
+
+        return afterRemoved;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.removesubhtmlnode"><title>removeSubHtmlNode 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+HtmlNode curBulletNode = allBulletNodeList[idx];
+ 
+HtmlNode noJsNode = crl.removeSubHtmlNode(curBulletNode, "script");
+HtmlNode noStyleNode = crl.removeSubHtmlNode(curBulletNode, "style");
+ 
+string bulletStr = noStyleNode.InnerText;
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="htmlremovetag"><title>去除HTML的标签tag:htmlRemoveTag</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+    /*
+     * [Function]
+     * remove html tag, retain html content
+     * [Input]
+     * html, with tag
+     * 
+     * [Output]
+     * pure content, no html tag
+     * 
+     * [Note]
+     */
+    public string htmlRemoveTag(string html)
+    {
+        string filteredHtml = "";
+
+        if (!string.IsNullOrEmpty(html))
+        {
+            HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
+            htmlDoc.LoadHtml(html);
+            if (htmlDoc == null)
+            {
+                return "";
+            }
+
+            // 1. remove all comments
+            //(1)get all comment nodes using XPATH
+            HtmlNodeCollection commentNodeList = htmlDoc.DocumentNode.SelectNodes("//comment()");
+            if (commentNodeList != null)
+            {
+                foreach (HtmlNode comment in commentNodeList)
+                {
+                    //(2) remove comment node itself
+                    comment.ParentNode.RemoveChild(comment);
+                }
+            }
+
+            //2. get all content
+            foreach (var node in htmlDoc.DocumentNode.ChildNodes)
+            {
+                filteredHtml += node.InnerText;
+            }
+        }
+
+        return filteredHtml;
+    }
+]]>
+    </programlisting>
+    <example xml:id="eg.htmlremovetag"><title>htmlRemoveTag 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+            HtmlAgilityPack.HtmlDocument htmlDoc = crl.htmlToHtmlDoc(googleSearchRespHtml);
+            HtmlNodeCollection liNodeList = htmlDoc.DocumentNode.SelectNodes("//li[@class='g']");
+            foreach (HtmlNode liNode in liNodeList)
+            {
+                HtmlNode h3ANode = liNode.SelectSingleNode(".//h3[@class='r']/a");
+                if (h3ANode != null)
+                {
+                    googleSearchResultItem singleResultItem = new googleSearchResultItem();
+
+                    //string titleHtml = h3ANode.InnerHtml; //"Amritanandamayi Math to <em>sponsor charity</em> events - Times Of India"
+                    string titleHtml = h3ANode.InnerText; //"Amritanandamayi Math to sponsor charity events - Times Of India"
+                    string filteredTitle = crl.htmlRemoveTag(titleHtml);
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+</chapter>

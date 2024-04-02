@@ -1,0 +1,127 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="serialize_deserialize">
+<title>crifanLib.cs之Serialize/Deserialize</title>
+
+<sect1 xml:id="serializeobjtostr"><title>将一个对象序列化成字符串:serializeObjToStr</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+// serialize an object to string
+public bool serializeObjToStr(Object obj, out string serializedStr)
+{
+    bool serializeOk = false;
+    serializedStr = "";
+    try
+    {
+        MemoryStream memoryStream = new MemoryStream();
+        BinaryFormatter binaryFormatter = new BinaryFormatter();
+        binaryFormatter.Serialize(memoryStream, obj);
+        serializedStr = System.Convert.ToBase64String(memoryStream.ToArray());
+
+        serializeOk = true;
+    }
+    catch
+    {
+        serializeOk = false;
+    }
+
+    return serializeOk;
+}
+]]>
+    </programlisting>
+    <example xml:id="eg.serializeobjtostr"><title>serializeObjToStr 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+        [Serializable]
+        public struct loginInfo_t
+        {
+            public bool valid;
+            public string username;
+            public string cid;
+            public string appid;
+            public string bitProtocol;
+            public string canary;
+            public CookieCollection cookies;
+            public DateTime createdTime;    // record the login info(cookie) create time
+            public DateTime lastUpldateTime;// last update the login info(cookie)'s time
+        };
+
+        private bool updateLoginInfo(skydrive.loginInfo_t loginInfo)
+        {
+            bool updateOk = false;
+
+            string serializedStr = "";
+
+            loginInfo.lastUpldateTime = DateTime.Now;
+
+            if (skydrive.commLib.serializeObjToStr(loginInfo, out serializedStr))
+            {
+                Settings.Default.loginInfoStr = serializedStr;
+                Settings.Default.Save();
+
+                updateOk = true;
+            }
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+<sect1 xml:id="deserializeStrToObj"><title>将字符串反序列化为对象:deserializeStrToObj</title>
+    <para></para>
+    <programlisting language="csharp">
+<![CDATA[
+// deserialize the string to an object
+public bool deserializeStrToObj(string serializedStr, out object deserializedObj)
+{
+    bool deserializeOk = false;
+    deserializedObj = null;
+
+    try
+    {
+        byte[] restoredBytes = System.Convert.FromBase64String(serializedStr);
+        MemoryStream restoredMemoryStream = new MemoryStream(restoredBytes);
+        BinaryFormatter binaryFormatter = new BinaryFormatter();
+        deserializedObj = binaryFormatter.Deserialize(restoredMemoryStream);
+
+        deserializeOk = true;
+    }
+    catch
+    {
+        deserializeOk = false;
+    }
+
+    return deserializeOk;
+}
+]]>
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.deserializestrtoobj"><title>deserializeStrToObj 的使用范例</title>
+        <programlisting language="csharp">
+<![CDATA[
+    //restore login info
+    object deserializedObj = null;
+    if (skydrive.commLib.deserializeStrToObj(Settings.Default.loginInfoStr, out deserializedObj))
+    {
+        loginInfo = (skydrive.loginInfo_t)deserializedObj;
+]]>
+        </programlisting>
+    </example>
+    <para></para>
+</sect1>
+
+</chapter>

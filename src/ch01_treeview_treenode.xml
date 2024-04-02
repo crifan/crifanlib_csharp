@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<!DOCTYPE chapter
+[
+
+<!ENTITY % crl_ent PUBLIC "crl.ent" 'http://www.crifan.com/files/res/docbook/entity/crl.ent'>
+%crl_ent;
+
+]>
+
+<chapter
+    xmlns="http://docbook.org/ns/docbook"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xl="http://www.w3.org/1999/xlink"
+    
+    xml:id="treeview_treenode">
+<title>crifanLib.cs之TreeView/TreeNode</title>
+
+<sect1 xml:id="find_root_treenode"><title>查找TreeNode的根节点:findRootTreeNode</title>
+    <para></para>
+    <programlisting language="csharp">
+    /*
+     * [Function]
+     * find root TreeNode of current TreeNode
+     * [Input]
+     * some TreeNode
+     * 
+     * [Output]
+     * root TreeNode of input TreeNode
+     * 
+     * [Note]
+     */
+    public TreeNode findRootTreeNode(TreeNode curTreeNode)
+    {
+        TreeNode rootTreeNode = curTreeNode.Parent;
+
+        if (rootTreeNode == null)
+        {
+            //root parent is null
+            rootTreeNode = curTreeNode;
+        }
+        else
+        {
+            //child parent is not null
+            while (rootTreeNode.Parent != null)
+            {
+                rootTreeNode = rootTreeNode.Parent;
+            }
+        }
+
+        return rootTreeNode;
+    }
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.findroottreenode"><title>findRootTreeNode的使用范例</title>
+        <programlisting language="csharp">
+        //get input TreeNode's BrowseNode's SearchIndex
+        private string getSearchIndex(TreeNode curTreeNode)
+        {
+            string strSearchIndex = "";
+
+            //find the root node
+            TreeNode rootTreeNode = crl.findRootTreeNode(curTreeNode);
+        </programlisting>
+    </example>
+</sect1>
+
+
+<sect1 xml:id="un_highlight_node"><title>取消节点的高亮:unHighlightNode</title>
+    <para></para>
+    <programlisting language="csharp">
+    /*
+     * [Function]
+     * un highlight tree node
+     * [Input]
+     * some TreeNode
+     * 
+     * [Output]
+     * restore color to background color
+     * 
+     * [Note]
+     */
+    public Color unHighlightNode(TreeView trvValue, TreeNode treeNode)
+    {
+        Color oldColor = trvValue.BackColor;
+        if (treeNode != null)
+        {
+            oldColor = treeNode.BackColor;
+            treeNode.BackColor = trvValue.BackColor;
+            treeNode.ForeColor = Color.Black;
+        }
+
+        return oldColor;
+    }
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.unhighlightnode"><title>unHighlightNode的使用范例</title>
+        <programlisting language="csharp">
+            else if (e.ClickedItem == tsmiRemoveFromSelection)
+            {
+                if (curSelTreeNodeList.Contains(curSelTreeNode))
+                {
+                    //remove selection
+                    curSelTreeNodeList.Remove(curSelTreeNode);
+
+                    //unhightlight node
+                    crl.unHighlightNode(trvCategoryTree, curSelTreeNode);
+                }
+            }
+        </programlisting>
+    </example>
+</sect1>
+
+
+<sect1 xml:id="highlightNode"><title>高亮TreeNode:highlightNode</title>
+    <para></para>
+    <programlisting language="csharp">
+    /*
+     * [Function]
+     * highlight tree node
+     * [Input]
+     * some TreeNode
+     * 
+     * [Output]
+     * set color to highlighted color
+     * 
+     * [Note]
+     */
+    public Color highlightNode(TreeView trvValue, TreeNode someNode)
+    {
+        Color oldColor = trvValue.BackColor; //"{Name=Window, ARGB=(255, 255, 255, 255)}"
+        if (someNode != null)
+        {
+            oldColor = someNode.BackColor; //"{Name=0, ARGB=(0, 0, 0, 0)}"
+
+            // HTML #3399FF -> RGB(51,153,255)
+            //"{Name=MenuHighlight, ARGB=(255, 51, 153, 255)}"
+            someNode.BackColor = SystemColors.MenuHighlight;
+            
+            //node.BackColor = nodeHlBackColor;
+
+            //node.ForeColor = Color.FromArgb(255, 255, 255);
+            someNode.ForeColor = Color.White;
+        }
+
+        return oldColor;
+    }
+    </programlisting>
+    <para></para>
+    <example xml:id="eg.highlightnode"><title>highlightNode的使用范例</title>
+        <programlisting language="csharp">
+            if (e.ClickedItem == tsmiAddToSelection)
+            {
+                if (!curSelTreeNodeList.Contains(curSelTreeNode))
+                {
+                    // add to selection
+                    curSelTreeNodeList.Add(curSelTreeNode);
+
+                    //hightlight node
+                    crl.highlightNode(trvCategoryTree, curSelTreeNode);
+                }
+            }
+        </programlisting>
+    </example>
+</sect1>
+
+</chapter>
